@@ -95,7 +95,7 @@ section.lab{padding:clamp(56px,9vh,96px) 0;border-bottom:1px solid rgba(239,221,
   border-radius:3px;box-shadow:0 40px 80px -30px #000;
 }
 .st-palco svg{position:absolute;inset:0;width:100%;height:100%}
-.st-caminho{fill:none;stroke:var(--wax);stroke-width:.6;stroke-linecap:round;stroke-dasharray:.05 .11}
+.st-caminho{fill:none;stroke:var(--wax);stroke-width:5;stroke-linecap:round}
 .st-marco circle{fill:none;stroke:#A81733;stroke-width:3}
 .st-marco text{font-family:Georgia,serif;font-size:17px;fill:#241C15;text-anchor:middle}
 .st-x path{stroke:#A81733;stroke-width:6;stroke-linecap:round;fill:none}
@@ -376,7 +376,7 @@ function vibrar(p){ if(navigator.vibrate) navigator.vibrate(p); }
 if(window.gsap && window.ScrollTrigger){
   gsap.registerPlugin(ScrollTrigger);
   gsap.set("#st-caminho",{strokeDasharray:1,strokeDashoffset:1});
-  gsap.set(["#st-m1","#st-m2","#st-m3","#st-x"],{scale:0,opacity:0,transformOrigin:"center",svgOrigin:null});
+  gsap.set(["#st-m1","#st-m2","#st-m3","#st-x"],{scale:0,opacity:0,transformOrigin:"center"});
 
   var tl=gsap.timeline({
     scrollTrigger:{
@@ -598,13 +598,16 @@ if(window.THREE){
     pin.add(miolo);
     scene.add(pin);
 
-    scene.add(new THREE.AmbientLight(0x2a2013,2.2));
-    var luzQuente=new THREE.PointLight(0xEFCE79,60);
+    scene.add(new THREE.AmbientLight(0x40311a,1.1));
+    var luzQuente=new THREE.PointLight(0xEFCE79,1.6);
     luzQuente.position.set(3,3,4);
     scene.add(luzQuente);
-    var luzMagenta=new THREE.PointLight(0xD4145A,26);
+    var luzMagenta=new THREE.PointLight(0xD4145A,.9);
     luzMagenta.position.set(-4,-2,3);
     scene.add(luzMagenta);
+    var luzFrente=new THREE.DirectionalLight(0xFFF3C4,.7);
+    luzFrente.position.set(0,1,5);
+    scene.add(luzFrente);
 
     var velX=0, velY=.006, arrastando=null;
     cv.addEventListener("pointerdown",function(e){
