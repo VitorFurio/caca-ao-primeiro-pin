@@ -1,0 +1,1136 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Caça ao Primeiro Pin — Rotaract Club de Jaraguá do Sul</title>
+
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --void:#0B0A09;
+  --void-2:#141110;
+  --ink:#241C15;
+  --ink-soft:#5A4535;
+  --parch-1:#EFDDB8;
+  --parch-2:#DCC79A;
+  --parch-3:#B99A66;
+  --wax:#A81733;
+  --wax-lit:#C93450;
+  --rotaract:#D4145A;
+  --gold:#C8A035;
+  --gold-lit:#EFCE79;
+
+  --display:'Didot','Bodoni MT','Playfair Display',Georgia,'Times New Roman',serif;
+  --hand:'Segoe Script','Bradley Hand','Snell Roundhand','Brush Script MT','Comic Sans MS',cursive;
+  --body:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;
+  --util:'Futura','Avenir Next','Century Gothic','Trebuchet MS',sans-serif;
+
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ease-back:cubic-bezier(.34,1.56,.64,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--void);
+  color:var(--parch-1);
+  font-family:var(--body);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold-lit);outline-offset:4px;border-radius:2px}
+
+/* ============================================================
+   CENAS
+   ============================================================ */
+.scene{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .7s var(--ease),visibility .7s,transform .7s var(--ease);
+}
+.scene.is-on{opacity:1;visibility:visible;pointer-events:auto}
+.scene.is-out{transform:scale(1.06);filter:blur(6px)}
+
+/* ============================================================
+   GRÃO E ATMOSFERA
+   ============================================================ */
+.grain{
+  position:absolute;inset:-20%;
+  pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+  animation:drift 14s steps(6,end) infinite;
+}
+@keyframes drift{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-1.5%,1%)}
+  40%{transform:translate(1%,-1.5%)}
+  60%{transform:translate(-1%,-1%)}
+  80%{transform:translate(1.5%,1%)}
+}
+.motes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.mote{
+  position:absolute;width:3px;height:3px;border-radius:50%;
+  background:var(--gold-lit);opacity:0;
+  filter:blur(.4px);
+  animation:float linear infinite;
+}
+@keyframes float{
+  0%{transform:translate3d(0,20px,0) scale(.4);opacity:0}
+  12%{opacity:.55}
+  88%{opacity:.35}
+  100%{transform:translate3d(var(--dx,20px),-110px,0) scale(1);opacity:0}
+}
+
+/* ============================================================
+   CAPA
+   ============================================================ */
+#cover{background:radial-gradient(ellipse at 50% 42%,var(--void-2) 0%,var(--void) 70%)}
+.cover-inner{
+  position:relative;
+  width:min(92vw,520px);
+  aspect-ratio:3/4;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6% 8%;
+}
+.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.frame path{
+  fill:none;stroke:var(--parch-1);stroke-width:1.2;opacity:.85;
+  stroke-dasharray:var(--len);stroke-dashoffset:var(--len);
+  animation:draw 2.2s var(--ease) forwards;
+}
+.frame path:nth-child(2){animation-delay:.18s;opacity:.5}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+.arc-title{width:100%;overflow:visible;margin-top:-4%}
+.arc-title text{
+  font-family:var(--display);
+  font-size:40px;letter-spacing:.30em;
+  fill:var(--parch-1);
+}
+.arc-title .arc-path-text{opacity:0;animation:fadeUp 1.4s .55s var(--ease) forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.chest{width:44%;max-width:200px;margin:6% 0 0;opacity:0;animation:fadeUp 1.2s 1s var(--ease) forwards}
+.chest .glint{transform-origin:center;animation:glint 4.5s 2.2s ease-in-out infinite}
+@keyframes glint{0%,86%,100%{opacity:0;transform:scale(.4)}92%{opacity:1;transform:scale(1.15)}}
+
+.cover-mark{
+  margin-top:auto;text-align:center;
+  opacity:0;animation:fadeUp 1.2s 1.3s var(--ease) forwards;
+}
+.cover-mark .rotaract{
+  font-family:var(--util);font-weight:700;font-size:clamp(20px,5.2vw,30px);
+  color:var(--rotaract);letter-spacing:-.01em;
+}
+.cover-mark .club{
+  font-family:var(--util);font-size:clamp(9px,2.3vw,12px);
+  color:var(--rotaract);opacity:.85;letter-spacing:.06em;margin-top:.15em;
+}
+
+.enter{
+  position:relative;z-index:2;
+  margin-top:7%;display:flex;flex-direction:column;align-items:center;gap:14px;
+  opacity:0;animation:fadeUp 1.2s 1.6s var(--ease) forwards;
+}
+.name-field{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.name-field label{
+  font-family:var(--util);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--parch-3);
+}
+.name-field input{
+  width:min(70vw,260px);
+  background:none;border:none;border-bottom:1px solid rgba(239,221,184,.28);
+  color:var(--parch-1);font-family:var(--hand);font-size:22px;
+  text-align:center;padding:4px 8px 6px;
+  transition:border-color .4s var(--ease);
+}
+.name-field input::placeholder{color:rgba(239,221,184,.22);font-family:var(--body);font-size:15px}
+.name-field input:focus{outline:none;border-bottom-color:var(--gold)}
+
+.btn-open{
+  font-family:var(--util);font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--void);background:var(--parch-1);
+  padding:13px 26px 12px;border-radius:1px;
+  transition:transform .45s var(--ease-back),background .4s,box-shadow .4s;
+}
+.btn-open:hover{transform:translateY(-2px);background:var(--gold-lit);box-shadow:0 10px 30px -12px var(--gold)}
+.btn-open:active{transform:translateY(1px) scale(.98)}
+
+/* ============================================================
+   MAPA
+   ============================================================ */
+#map{background:var(--void);padding:max(14px,env(safe-area-inset-top)) 14px 14px}
+.map-stage{
+  position:relative;
+  width:min(96vw,1120px);
+  max-height:78vh;aspect-ratio:10/7;
+  border-radius:2px;overflow:hidden;
+  background:
+    radial-gradient(ellipse at 24% 18%,rgba(255,255,255,.28),transparent 55%),
+    radial-gradient(ellipse at 78% 82%,rgba(120,80,30,.22),transparent 60%),
+    linear-gradient(148deg,var(--parch-1) 0%,var(--parch-2) 52%,var(--parch-3) 100%);
+  box-shadow:0 40px 80px -30px #000,0 0 0 1px rgba(0,0,0,.5);
+  transform:scale(.94);opacity:0;
+  transition:transform .9s var(--ease),opacity .9s var(--ease);
+}
+#map.is-on .map-stage{transform:none;opacity:1}
+.stains{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.5;
+  background:
+   radial-gradient(circle at 12% 88%,rgba(120,72,20,.5),transparent 22%),
+   radial-gradient(circle at 92% 12%,rgba(120,72,20,.42),transparent 20%),
+   radial-gradient(circle at 62% 96%,rgba(90,55,15,.35),transparent 18%);
+}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 90px 22px rgba(70,44,14,.42);}
+
+/* lanterna — a aposta visual */
+.lantern{
+  position:absolute;inset:0;pointer-events:none;z-index:4;
+  background:radial-gradient(circle 34vmin at var(--mx,50%) var(--my,45%),
+    rgba(0,0,0,0) 0%,rgba(10,7,3,.10) 34%,rgba(10,7,3,.44) 62%,rgba(8,5,2,.62) 100%);
+  transition:background .18s linear;
+}
+body.lantern-off .lantern{background:rgba(10,7,3,.16)}
+
+.mapsvg{position:absolute;inset:0;width:100%;height:100%;z-index:2}
+
+/* traços do mapa */
+.geo{fill:none;stroke:var(--ink);stroke-linecap:round;stroke-linejoin:round}
+.coast{stroke-width:1.6;opacity:.55}
+.water{fill:#9FA98C;opacity:.34;stroke:none}
+.river{stroke-width:2.2;opacity:.35}
+.road{stroke-width:1.1;opacity:.3;stroke-dasharray:7 6}
+.hill{stroke-width:1.3;opacity:.36}
+.tree-mark{stroke-width:1.1;opacity:.3}
+.map-border{stroke:var(--ink);stroke-width:2;fill:none;opacity:.55}
+.map-border-2{stroke:var(--ink);stroke-width:.8;fill:none;opacity:.4}
+.map-label{
+  font-family:var(--display);fill:var(--ink);opacity:.34;
+  letter-spacing:.42em;font-size:15px;
+}
+.cartouche{font-family:var(--util);fill:var(--ink);opacity:.42;font-size:9.5px;letter-spacing:.2em}
+
+/* trilhas que se acendem */
+.trail{
+  fill:none;stroke:var(--wax);stroke-width:2.2;stroke-linecap:round;
+  stroke-dasharray:var(--len);stroke-dashoffset:var(--len);
+  opacity:0;
+}
+.trail.is-lit{opacity:.55;transition:stroke-dashoffset 1.1s .25s var(--ease),opacity .4s}
+.trail.is-lit{stroke-dashoffset:0}
+
+/* selos no mapa */
+.sigil{cursor:pointer;color:var(--ink);transition:transform .5s var(--ease-back)}
+.sigil .hit{fill:transparent;stroke:none}
+.sigil .art{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sigil .halo{fill:none;stroke:var(--gold-lit);stroke-width:1;opacity:0;transition:opacity .45s}
+.sigil .ring{
+  fill:none;stroke:var(--wax);stroke-width:3.4;opacity:0;
+  stroke-dasharray:var(--rlen);stroke-dashoffset:var(--rlen);
+  transition:stroke-dashoffset 1s var(--ease),opacity .3s;
+}
+.sigil .caption{
+  font-family:var(--util);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  fill:var(--ink);opacity:0;transition:opacity .4s;text-anchor:middle;
+}
+
+.sigil[data-state="locked"]{opacity:.26}
+.sigil[data-state="locked"] .art{stroke-dasharray:3 5}
+.sigil[data-state="open"]{opacity:.92;animation:breathe 5s ease-in-out infinite}
+@keyframes breathe{0%,100%{filter:none}50%{filter:drop-shadow(0 0 7px rgba(200,160,53,.55))}}
+.sigil[data-state="done"]{opacity:1;color:var(--wax)}
+.sigil[data-state="done"] .ring{opacity:.85;stroke-dashoffset:0}
+
+.sigil:hover,.sigil:focus-visible{transform:scale(1.14)}
+.sigil:hover .halo,.sigil:focus-visible .halo{opacity:.75}
+.sigil:hover .caption,.sigil:focus-visible .caption{opacity:.8}
+.sigil[data-state="locked"]:hover{transform:scale(1.04)}
+
+.xmark{color:var(--wax)}
+.xmark path{stroke:currentColor;stroke-width:4;stroke-linecap:round;fill:none;opacity:.75}
+.xmark.is-ready{animation:pulseX 1.6s ease-in-out infinite}
+@keyframes pulseX{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+
+/* barra do mapa */
+.map-bar{
+  width:min(96vw,1120px);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-top:14px;
+  font-family:var(--util);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--parch-3);
+  opacity:0;transition:opacity .8s .4s var(--ease);
+}
+#map.is-on .map-bar{opacity:1}
+.seals{display:flex;gap:7px;align-items:center}
+.seal-dot{
+  width:9px;height:9px;border-radius:50%;
+  border:1px solid rgba(239,221,184,.35);
+  transition:background .5s var(--ease),transform .5s var(--ease-back),border-color .5s;
+}
+.seal-dot.is-done{background:var(--wax);border-color:var(--wax-lit);transform:scale(1.25)}
+.ghost-btn{
+  font-family:var(--util);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--parch-3);border-bottom:1px solid transparent;padding-bottom:2px;
+  transition:color .3s,border-color .3s;
+}
+.ghost-btn:hover{color:var(--gold-lit);border-bottom-color:var(--gold)}
+
+/* ============================================================
+   FOLHA DE TAREFA
+   ============================================================ */
+#task{background:rgba(6,5,4,.9);backdrop-filter:blur(3px);padding:16px}
+.sheet{
+  position:relative;
+  width:min(92vw,560px);max-height:88vh;overflow-y:auto;overscroll-behavior:contain;
+  padding:clamp(26px,5vw,44px) clamp(22px,5vw,44px) clamp(90px,12vw,110px);
+  background:
+    radial-gradient(ellipse at 30% 8%,rgba(255,255,255,.3),transparent 50%),
+    linear-gradient(160deg,var(--parch-1),var(--parch-2) 70%,var(--parch-3));
+  color:var(--ink);
+  box-shadow:0 40px 90px -28px #000;
+  transform:translateY(28px) rotateX(6deg);opacity:0;
+  transform-origin:50% 0;
+  transition:transform .65s var(--ease),opacity .5s var(--ease);
+}
+#task.is-on .sheet{transform:none;opacity:1}
+.sheet.shake{animation:shake .5s var(--ease)}
+@keyframes shake{
+  0%,100%{transform:none}
+  15%{transform:translate(3px,5px) rotate(.5deg)}
+  35%{transform:translate(-4px,-2px) rotate(-.6deg)}
+  55%{transform:translate(2px,3px) rotate(.3deg)}
+  75%{transform:translate(-1px,-1px)}
+}
+
+.sheet-sigil{width:clamp(96px,22vw,132px);height:clamp(96px,22vw,132px);display:block;margin:0 auto 26px;color:var(--ink)}
+.sheet-sigil path,.sheet-sigil circle,.sheet-sigil line,.sheet-sigil polyline{
+  fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+}
+
+.eyebrow{
+  text-align:center;font-family:var(--util);font-size:9.5px;letter-spacing:.34em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:16px;
+}
+.sheet h1{
+  font-family:var(--hand);font-weight:400;
+  font-size:clamp(23px,5.4vw,31px);line-height:1.42;text-align:center;
+  margin-bottom:26px;
+  /* título "escrito" com wipe */
+  -webkit-mask-image:linear-gradient(90deg,#000 0 0);
+  clip-path:inset(0 100% 0 0);
+  transition:clip-path 1.1s .35s var(--ease);
+}
+#task.is-on .sheet h1{clip-path:inset(0 0 0 0)}
+.sheet p{
+  font-size:clamp(14.5px,3.5vw,16.5px);line-height:1.72;text-align:center;
+  color:var(--ink);margin-bottom:16px;
+  opacity:0;transform:translateY(10px);
+  transition:opacity .7s var(--ease),transform .7s var(--ease);
+}
+#task.is-on .sheet p{opacity:.92;transform:none}
+#task.is-on .sheet p:nth-of-type(1){transition-delay:.7s}
+#task.is-on .sheet p:nth-of-type(2){transition-delay:.85s}
+#task.is-on .sheet p:nth-of-type(3){transition-delay:1s}
+
+.rule{width:56px;height:1px;background:var(--ink);opacity:.25;margin:26px auto}
+
+/* rodapé da folha: número da tarefa em bandeira magenta (igual ao impresso) */
+.flag{
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:118px;padding:14px 0 12px;
+  background:var(--rotaract);color:#fff;text-align:center;
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 74%,0 100%);
+  font-family:var(--util);font-size:9.5px;letter-spacing:.3em;line-height:1.9;
+}
+.flag b{display:block;font-size:15px;letter-spacing:.1em}
+
+/* ações */
+.sheet-actions{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:8px}
+.btn-seal{
+  font-family:var(--util);font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--parch-1);background:var(--wax);
+  padding:14px 30px 13px;
+  transition:transform .4s var(--ease-back),background .35s,box-shadow .35s;
+  box-shadow:0 8px 24px -12px rgba(168,23,51,.9);
+}
+.btn-seal:hover{transform:translateY(-2px);background:var(--wax-lit);box-shadow:0 14px 34px -12px rgba(168,23,51,1)}
+.btn-seal:active{transform:translateY(2px) scale(.97)}
+.btn-seal[disabled]{background:var(--ink-soft);opacity:.4;cursor:default;transform:none;box-shadow:none}
+.btn-back{
+  font-family:var(--util);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink-soft);opacity:.7;transition:opacity .3s}
+.btn-back:hover{opacity:1}
+.locked-note{
+  font-family:var(--util);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-soft);opacity:.65;text-align:center;line-height:1.8;max-width:34ch;
+}
+
+/* o lacre — momento assinatura */
+.wax{
+  position:absolute;left:50%;top:clamp(150px,30vw,190px);
+  width:112px;height:112px;margin-left:-56px;
+  pointer-events:none;opacity:0;z-index:5;
+}
+.wax.stamping{animation:stamp .72s var(--ease) forwards}
+@keyframes stamp{
+  0%{opacity:0;transform:translateY(-320px) scale(2.1) rotate(-16deg);filter:blur(8px)}
+  55%{opacity:1;transform:translateY(0) scale(1.06) rotate(-9deg);filter:blur(0)}
+  68%{transform:translateY(4px) scaleX(1.16) scaleY(.84) rotate(-9deg)}
+  82%{transform:translateY(0) scale(.97) rotate(-8deg)}
+  100%{opacity:1;transform:none;transform:rotate(-8deg) scale(1)}
+}
+.wax.settled{opacity:1;transform:rotate(-8deg)}
+.dust{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--wax);pointer-events:none;z-index:6}
+
+/* ============================================================
+   FINAL
+   ============================================================ */
+#final{background:radial-gradient(ellipse at 50% 40%,#1B1509 0%,var(--void) 68%)}
+.final-inner{text-align:center;padding:24px;max-width:min(92vw,540px)}
+.pin-wrap{
+  position:relative;width:clamp(150px,38vw,210px);height:clamp(150px,38vw,210px);
+  margin:0 auto 34px;
+  transform:scale(.5) rotate(-40deg);opacity:0;
+}
+#final.is-on .pin-wrap{
+  transition:transform 1.5s var(--ease-back),opacity 1.1s var(--ease);
+  transform:none;opacity:1;
+}
+.pin-wrap svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 26px rgba(200,160,53,.5))}
+.pin-sweep{
+  position:absolute;inset:0;pointer-events:none;border-radius:50%;overflow:hidden;
+}
+.pin-sweep::after{
+  content:"";position:absolute;top:-60%;left:-120%;width:60%;height:220%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);
+  transform:rotate(18deg);
+  animation:sweep 3.6s 1.4s ease-in-out infinite;
+}
+@keyframes sweep{0%{left:-120%}45%,100%{left:170%}}
+
+.final-inner .kicker{
+  font-family:var(--util);font-size:10px;letter-spacing:.36em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:18px;
+}
+.final-inner h2{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(26px,6.4vw,40px);letter-spacing:.05em;line-height:1.3;
+  margin-bottom:20px;color:var(--parch-1);
+}
+.final-name{font-family:var(--hand);font-size:clamp(26px,7vw,40px);color:var(--gold-lit);margin-bottom:6px}
+.final-inner p{
+  font-size:clamp(14px,3.4vw,16px);line-height:1.75;color:var(--parch-3);
+  max-width:38ch;margin:0 auto 26px;
+}
+.final-date{
+  font-family:var(--util);font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--ink-soft);color:#7A6449;margin-bottom:30px;
+}
+.final-inner .btn-open{margin-top:4px}
+
+/* ============================================================
+   RESPONSIVO / ACESSIBILIDADE
+   ============================================================ */
+@media (max-width:640px){
+  .map-stage{aspect-ratio:1/1.05;max-height:66vh}
+  .arc-title text{font-size:44px;letter-spacing:.24em}
+  .lantern{background:radial-gradient(circle 42vmin at var(--mx,50%) var(--my,45%),
+    rgba(0,0,0,0) 0%,rgba(10,7,3,.08) 40%,rgba(10,7,3,.38) 70%,rgba(8,5,2,.5) 100%)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+  .lantern{background:rgba(10,7,3,.12)}
+  .sheet h1{clip-path:none}
+  .motes{display:none}
+}
+</style>
+
+<!-- ============================================================
+     BIBLIOTECA DE SÍMBOLOS
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="grainf"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+
+  <!-- 1. VEGVISIR — a bússola -->
+  <symbol id="s-vegvisir" viewBox="-50 -50 100 100">
+    <circle cx="0" cy="0" r="45"/><circle cx="0" cy="0" r="40"/>
+    <g class="staves">
+      <g><path d="M0 0V-33"/><path d="M-7 -25 0 -33 7 -25"/><path d="M-6 -13H6"/></g>
+      <g transform="rotate(45)"><path d="M0 0V-33"/><path d="M-6 -33H6"/><path d="M-5 -22H5"/></g>
+      <g transform="rotate(90)"><path d="M0 0V-33"/><path d="M-7 -25 0 -33 7 -25"/><path d="M-6 -13H6"/></g>
+      <g transform="rotate(135)"><path d="M0 0V-33"/><path d="M0 -33 8 -27"/><path d="M0 -22 8 -16"/></g>
+      <g transform="rotate(180)"><path d="M0 0V-33"/><path d="M-7 -25 0 -33 7 -25"/><path d="M-6 -13H6"/></g>
+      <g transform="rotate(225)"><path d="M0 0V-33"/><path d="M-6 -33H6"/><path d="M-5 -22H5"/></g>
+      <g transform="rotate(270)"><path d="M0 0V-33"/><path d="M-7 -25 0 -33 7 -25"/><path d="M-6 -13H6"/></g>
+      <g transform="rotate(315)"><path d="M0 0V-33"/><path d="M0 -33-8 -27"/><path d="M0 -22-8 -16"/></g>
+    </g>
+  </symbol>
+
+  <!-- 2. OUROBOROS — o ciclo -->
+  <symbol id="s-ouroboros" viewBox="-50 -50 100 100">
+    <path d="M-6 -20a22 22 0 1 0 0 40 22 22 0 1 0 0-40"/>
+    <path d="M6 -20a22 22 0 1 1 0 40 22 22 0 1 1 0-40"/>
+    <path d="M-28 -6 -36 0-28 6"/>
+    <path d="M28 -6 36 0 28 6"/>
+    <path d="M-14 -26-11 -31-6 -28"/>
+  </symbol>
+
+  <!-- 3. ELMO E LOUROS — o treino -->
+  <symbol id="s-elmo" viewBox="-50 -50 100 100">
+    <path d="M-16 6c0-16 7-26 16-26s16 10 16 26"/>
+    <path d="M-16 6v10h32V6"/>
+    <path d="M-4 16v8"/><path d="M4 16v8"/>
+    <path d="M0 -20c4-8 9-11 9-11s-1 7-4 11"/>
+    <path d="M-34 -6c-2 18 8 32 22 36"/>
+    <path d="M34 -6c2 18-8 32-22 36"/>
+    <path d="M-30 -2-36 -8"/><path d="M-28 8-35 5"/><path d="M-24 18-30 18"/>
+    <path d="M30 -2 36 -8"/><path d="M28 8 35 5"/><path d="M24 18 30 18"/>
+    <path d="M-26 26 26 -2"/><path d="M26 26-26 -2"/>
+  </symbol>
+
+  <!-- 4. TEMPLO — a obra -->
+  <symbol id="s-templo" viewBox="-50 -50 100 100">
+    <path d="M-40 -14 0 -36 40 -14Z"/>
+    <path d="M-36 -8H36"/>
+    <path d="M-30 -8V22"/><path d="M-18 -8V22"/><path d="M-6 -8V22"/>
+    <path d="M6 -8V22"/><path d="M18 -8V22"/><path d="M30 -8V22"/>
+    <path d="M-40 22H40"/><path d="M-44 28H44"/><path d="M-48 34H48"/>
+    <circle cx="0" cy="-22" r="3"/>
+  </symbol>
+
+  <!-- 5. O SELO PERDIDO -->
+  <symbol id="s-misterio" viewBox="-50 -50 100 100">
+    <circle cx="0" cy="0" r="42" stroke-dasharray="6 7"/>
+    <path d="M-11 -12a11 11 0 1 1 11 11v7"/>
+    <path d="M0 14v3"/>
+  </symbol>
+
+  <!-- 6. LOBO E TRISKELION — a alcateia -->
+  <symbol id="s-lobo" viewBox="-50 -50 100 100">
+    <path d="M-30 4-44 -4-26 -8c2-14 14-26 30-30l-4-14 14 12c14 6 22 22 20 38-2 20-18 34-38 34-18 0-26-14-26-28Z"/>
+    <path d="M0 -6c3-4 9-3 10 2 1 6-5 10-11 8-7-2-10-10-7-17"/>
+    <path d="M-2 8c-4 2-9-1-9-6 0-6 7-9 12-6 6 4 6 12 1 17"/>
+    <path d="M6 6c1 4-3 8-8 7-6-2-7-9-3-13 5-5 13-2 16 4"/>
+  </symbol>
+
+  <!-- 7. ÁRVORE DA VIDA — a raiz -->
+  <symbol id="s-arvore" viewBox="-50 -50 100 100">
+    <circle cx="0" cy="0" r="44"/><circle cx="0" cy="0" r="39"/>
+    <path d="M0 26V-2"/>
+    <path d="M0 2C-8 -4-14 -12-14 -20"/>
+    <path d="M0 2C8 -4 14 -12 14 -20"/>
+    <path d="M0 -6C-16 -12-24 -20-24 -28"/>
+    <path d="M0 -6C16 -12 24 -20 24 -28"/>
+    <path d="M-14 -20c-6-2-9-8-8-14"/>
+    <path d="M14 -20c6-2 9-8 8-14"/>
+    <path d="M0 26c-10 2-18 6-22 12"/>
+    <path d="M0 26c10 2 18 6 22 12"/>
+    <path d="M0 26v12"/>
+    <path d="M-30 30c8-6 18-8 30-8s22 2 30 8"/>
+  </symbol>
+
+  <!-- Roda do Rotary (pin final) -->
+  <symbol id="s-roda" viewBox="-50 -50 100 100">
+    <circle cx="0" cy="0" r="34"/><circle cx="0" cy="0" r="27"/>
+    <circle cx="0" cy="0" r="8"/><circle cx="0" cy="0" r="4"/>
+    <g id="spokes"></g>
+  </symbol>
+</svg>
+
+<!-- ============================================================
+     CENA 1 — CAPA
+     ============================================================ -->
+<section class="scene" id="cover">
+  <div class="motes" id="motes-cover"></div>
+  <div class="cover-inner">
+    <svg class="frame" viewBox="0 0 400 533" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M28 10H372a10 10 0 0 1 10 10V513a10 10 0 0 1-10 10H28a10 10 0 0 1-10-10V20a10 10 0 0 1 10-10Z"/>
+      <path d="M34 17H366a7 7 0 0 1 7 7V509a7 7 0 0 1-7 7H34a7 7 0 0 1-7-7V24a7 7 0 0 1 7-7Z"/>
+    </svg>
+
+    <svg class="arc-title" viewBox="0 0 600 300" aria-label="Caça ao Primeiro Pin">
+      <path id="arcpath" d="M60 290 A 240 240 0 0 1 540 290" fill="none"/>
+      <text class="arc-path-text"><textPath href="#arcpath" startOffset="50%" text-anchor="middle">CAÇA AO PRIMEIRO PIN</textPath></text>
+    </svg>
+
+    <svg class="chest" viewBox="0 0 200 160" aria-hidden="true">
+      <path d="M24 70a76 40 0 0 1 152 0Z" fill="#8B4A22" stroke="#5C2E11" stroke-width="3"/>
+      <path d="M24 70h152v58a8 8 0 0 1-8 8H32a8 8 0 0 1-8-8Z" fill="#A45A28" stroke="#5C2E11" stroke-width="3"/>
+      <path d="M36 78h128v14H36Z" fill="#E9A93C" opacity=".9"/>
+      <circle cx="100" cy="106" r="9" fill="#5C2E11"/>
+      <path d="M96 106h8v14h-8Z" fill="#5C2E11"/>
+      <path d="M24 92h152" stroke="#5C2E11" stroke-width="3"/>
+      <g class="glint"><path d="M62 62 66 74 78 78 66 82 62 94 58 82 46 78 58 74Z" fill="#FFF3C4"/></g>
+      <g class="glint" style="animation-delay:3.4s"><path d="M136 66 139 74 147 77 139 80 136 88 133 80 125 77 133 74Z" fill="#FFF3C4"/></g>
+    </svg>
+
+    <div class="cover-mark">
+      <div class="rotaract">Rotaract</div>
+      <div class="club">Club de Jaraguá do Sul</div>
+    </div>
+
+    <div class="enter">
+      <div class="name-field">
+        <label for="nome">Grave seu nome no mapa</label>
+        <input id="nome" type="text" placeholder="seu nome" autocomplete="off" spellcheck="false" maxlength="28">
+      </div>
+      <button class="btn-open" id="btn-abrir">Abrir o mapa</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CENA 2 — MAPA
+     ============================================================ -->
+<section class="scene" id="map">
+  <div class="map-stage" id="stage">
+    <div class="stains"></div>
+    <svg class="grain" aria-hidden="true"><rect width="100%" height="100%" filter="url(#grainf)"/></svg>
+
+    <svg class="mapsvg" id="mapsvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" aria-label="Mapa da caça">
+      <!-- moldura -->
+      <rect class="map-border" x="18" y="18" width="964" height="664" rx="4"/>
+      <rect class="map-border-2" x="27" y="27" width="946" height="646" rx="3"/>
+
+      <!-- água -->
+      <path class="water" d="M60 700V612c60-26 132-14 196-30 62-16 96-52 168-46 74 6 108 48 186 44 62-4 96-30 158-24 58 6 96 34 154 30V700Z"/>
+      <path class="geo coast" d="M60 612c60-26 132-14 196-30 62-16 96-52 168-46 74 6 108 48 186 44 62-4 96-30 158-24 58 6 96 34 154 30"/>
+
+      <!-- rio -->
+      <path class="geo river" d="M318 30c14 64-22 96-8 152 12 50 62 66 58 118-4 54-62 74-58 128 2 34 22 56 20 90"/>
+      <path class="geo river" d="M700 40c-8 52 26 74 18 118-8 44-58 56-52 100 6 44 54 58 50 104" opacity=".22"/>
+
+      <!-- estradas -->
+      <path class="geo road" d="M40 250c130 20 210-40 330-30 118 10 168 84 290 70 88-10 130-64 232-56"/>
+      <path class="geo road" d="M180 60c30 96-24 150 6 244 26 84 132 106 148 200"/>
+      <path class="geo road" d="M960 300c-110 8-160 68-268 74-96 6-142-38-236-24"/>
+
+      <!-- relevo -->
+      <g class="geo hill">
+        <path d="M120 210 142 186 164 210"/><path d="M150 214 172 190 194 214"/>
+        <path d="M596 96 618 72 640 96"/><path d="M626 100 648 76 670 100"/>
+        <path d="M812 486 830 466 848 486"/>
+      </g>
+      <g class="geo tree-mark">
+        <path d="M250 330v-14M244 322l6-8 6 8"/><path d="M276 348v-14M270 340l6-8 6 8"/>
+        <path d="M556 250v-14M550 242l6-8 6 8"/><path d="M584 268v-14M578 260l6-8 6 8"/>
+        <path d="M880 210v-14M874 202l6-8 6 8"/>
+      </g>
+
+      <!-- rótulos -->
+      <text class="map-label" x="500" y="640" text-anchor="middle">MAR DA ESPERA</text>
+      <text class="map-label" x="120" y="120" transform="rotate(-8 120 120)" font-size="12">TERRAS ALTAS</text>
+      <text class="cartouche" x="52" y="668">ROTARACT CLUB DE JARAGUÁ DO SUL · TRILHA DO NOVO ASSOCIADO</text>
+
+      <!-- rosa dos ventos -->
+      <g transform="translate(910,610)" class="geo" opacity=".4" stroke-width="1.4">
+        <circle r="30"/><circle r="22"/>
+        <path d="M0 -34 6 -6 34 0 6 6 0 34-6 6-34 0-6 -6Z"/>
+        <text x="0" y="-38" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#241C15" stroke="none">N</text>
+      </g>
+
+      <!-- trilhas (preenchidas por JS) -->
+      <g id="trails"></g>
+
+      <!-- destino -->
+      <g class="xmark" id="xmark" transform="translate(500,338)">
+        <path d="M-20 -20 20 20"/><path d="M20 -20-20 20"/>
+      </g>
+      <text class="cartouche" x="500" y="384" text-anchor="middle" id="xlabel">O PIN</text>
+
+      <!-- selos (preenchidos por JS) -->
+      <g id="sigils"></g>
+    </svg>
+
+    <div class="vignette"></div>
+    <div class="lantern" id="lantern"></div>
+  </div>
+
+  <div class="map-bar">
+    <div class="seals" id="seals" aria-label="Progresso"></div>
+    <div id="counter">0 de 6 selos</div>
+    <button class="ghost-btn" id="btn-reset">Recomeçar</button>
+  </div>
+</section>
+
+<!-- ============================================================
+     CENA 3 — TAREFA
+     ============================================================ -->
+<section class="scene" id="task">
+  <article class="sheet" id="sheet">
+    <svg class="grain" aria-hidden="true"><rect width="100%" height="100%" filter="url(#grainf)"/></svg>
+    <svg class="sheet-sigil" id="sheet-sigil" viewBox="-50 -50 100 100" aria-hidden="true"></svg>
+    <div class="eyebrow" id="sheet-eyebrow"></div>
+    <h1 id="sheet-title"></h1>
+    <div id="sheet-body"></div>
+    <div class="rule"></div>
+    <div class="sheet-actions" id="sheet-actions"></div>
+    <div class="flag" id="sheet-flag"></div>
+    <svg class="wax" id="wax" viewBox="-60 -60 120 120" aria-hidden="true"></svg>
+  </article>
+</section>
+
+<!-- ============================================================
+     CENA 4 — FINAL
+     ============================================================ -->
+<section class="scene" id="final">
+  <div class="motes" id="motes-final"></div>
+  <div class="final-inner">
+    <div class="pin-wrap">
+      <svg viewBox="-50 -50 100 100" aria-label="Pin do Rotaract">
+        <g id="pin-gear" fill="none" stroke="#C8A035" stroke-width="2.4" stroke-linejoin="round"></g>
+      </svg>
+      <div class="pin-sweep"></div>
+    </div>
+    <div class="kicker">Trilha concluída</div>
+    <h2>O primeiro pin é seu</h2>
+    <div class="final-name" id="final-name"></div>
+    <p>Os próximos passos para sua associação serão dados por parte do clube e em breve você terá novidades.</p>
+    <div class="final-date" id="final-date"></div>
+    <button class="btn-open" id="btn-voltar">Ver o mapa completo</button>
+  </div>
+</section>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ==========================================================
+     CONTEÚDO — texto real do livro impresso
+     ========================================================== */
+  var TAREFAS = [
+    { n:1, sig:"vegvisir", nome:"A Bússola", x:830, y:400,
+      titulo:"Participar das reuniões por um período mínimo de 90 dias",
+      corpo:[
+        "O Rotaract exige compromisso e frequência. Durante 90 dias os convidados devem procurar conhecer o movimento e descobrir se é o que buscam.",
+        "Associados de outros clubes em processo de transferência terão um período reduzido por já conhecerem o movimento."
+      ]},
+    { n:2, sig:"ouroboros", nome:"O Ciclo", x:430, y:112,
+      titulo:"Atingir 60% de frequência",
+      corpo:[
+        "Será avaliada a frequência ao longo do período de 90 dias citado na Tarefa 1.",
+        "A frequência pode ser recuperada em reuniões da família rotária (Rotary, Rotaract e Interact)."
+      ]},
+    { n:3, sig:"elmo", nome:"O Treino", x:452, y:596,
+      titulo:"Participar de no mínimo 1 treinamento",
+      corpo:[
+        "É preciso treinar para melhorar, e a busca pelo conhecimento leva à excelência.",
+        "São válidos treinamentos promovidos pelo distrito e pelo clube."
+      ]},
+    { n:4, sig:"templo", nome:"A Obra", x:790, y:150,
+      titulo:"Participar de no mínimo 1 projeto (ou ação)",
+      corpo:[
+        "Nada como pôr a mão na massa para aprender.",
+        "O Rotaract impacta o mundo por meio de seus projetos, e por isso é tão importante entender como funcionam."
+      ]},
+    { n:5, sig:"misterio", nome:"O Selo Perdido", x:706, y:618, pendente:true,
+      titulo:"Esta tarefa ainda não foi escrita",
+      corpo:[
+        "O material impresso pula da Tarefa 4 para a Tarefa 6 — este selo está reservado para o conteúdo que falta.",
+        "Assim que o texto existir, ele entra aqui sem mexer em mais nada."
+      ]},
+    { n:6, sig:"lobo", nome:"A Alcateia", x:198, y:148,
+      titulo:"Ser aprovado pelo clube",
+      corpo:[
+        "Uma votação será convocada antes da sua associação. Para o aceite de um novo membro é necessária a aprovação por maioria simples dos associados."
+      ]},
+    { n:7, sig:"arvore", nome:"A Raiz", x:168, y:430,
+      titulo:"Encontrar e indicar quem será seu padrinho ou madrinha",
+      corpo:[
+        "Sempre é bom ter alguém para ser sua bússola moral. Encontre um(a) associado(a) que te inspire, que te passe confiança e que seja alguém para quem você possa recorrer.",
+        "O seu padrinho ou madrinha será o responsável por te ensinar e auxiliar, e por isso você deve pensar bem antes de fazer essa escolha."
+      ]}
+  ];
+
+  var VALIDAS = TAREFAS.filter(function(t){ return !t.pendente; });
+  var TOTAL = VALIDAS.length;
+  var CX = 500, CY = 338;
+
+  /* ==========================================================
+     ESTADO (localStorage é best-effort em file://)
+     ========================================================== */
+  var estado = { nome:"", feitas:[] };
+  try{
+    var raw = localStorage.getItem("cacaPin");
+    if(raw) estado = JSON.parse(raw);
+  }catch(e){}
+  function salvar(){ try{ localStorage.setItem("cacaPin", JSON.stringify(estado)); }catch(e){} }
+  function feita(n){ return estado.feitas.indexOf(n) !== -1; }
+
+  var $ = function(id){ return document.getElementById(id); };
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag,attrs){
+    var e = document.createElementNS(NS,tag);
+    for(var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  var reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ==========================================================
+     CENAS
+     ========================================================== */
+  var cenaAtual = null;
+  function irPara(id){
+    var alvo = $(id);
+    if(cenaAtual === alvo) return;
+    if(cenaAtual){
+      var anterior = cenaAtual;
+      anterior.classList.add("is-out");
+      anterior.classList.remove("is-on");
+      setTimeout(function(){ anterior.classList.remove("is-out"); }, 700);
+    }
+    cenaAtual = alvo;
+    requestAnimationFrame(function(){ alvo.classList.add("is-on"); });
+  }
+
+  /* ==========================================================
+     PARTÍCULAS
+     ========================================================== */
+  function semearMotes(container, qtd){
+    for(var i=0;i<qtd;i++){
+      var m = document.createElement("span");
+      m.className = "mote";
+      m.style.left = (Math.random()*100) + "%";
+      m.style.top = (60 + Math.random()*45) + "%";
+      m.style.setProperty("--dx", (Math.random()*80-40) + "px");
+      m.style.animationDuration = (7 + Math.random()*9) + "s";
+      m.style.animationDelay = (Math.random()*9) + "s";
+      m.style.transform = "scale(" + (0.5 + Math.random()) + ")";
+      container.appendChild(m);
+    }
+  }
+  if(!reduz){
+    semearMotes($("motes-cover"), 26);
+    semearMotes($("motes-final"), 40);
+  }
+
+  /* ==========================================================
+     MAPA — trilhas e selos
+     ========================================================== */
+  var gTrails = $("trails"), gSigils = $("sigils");
+
+  TAREFAS.forEach(function(t){
+    // trilha curva do selo até o destino
+    var mx = (t.x + CX)/2 + (t.y > CY ? 40 : -40);
+    var my = (t.y + CY)/2 + (t.x > CX ? 34 : -34);
+    var trail = el("path",{ "class":"trail", d:"M"+t.x+" "+t.y+" Q"+mx+" "+my+" "+CX+" "+CY });
+    trail.dataset.n = t.n;
+    gTrails.appendChild(trail);
+    var L = trail.getTotalLength();
+    trail.style.setProperty("--len", L);
+
+    // selo
+    var g = el("g",{ "class":"sigil", transform:"translate("+t.x+","+t.y+")",
+                     tabindex:"0", role:"button" });
+    g.dataset.n = t.n;
+    g.appendChild(el("circle",{ "class":"hit", r:"56" }));
+
+    var ring = el("circle",{ "class":"ring", r:"52" });
+    var rlen = 2*Math.PI*52;
+    ring.style.setProperty("--rlen", rlen);
+    g.appendChild(ring);
+
+    g.appendChild(el("circle",{ "class":"halo", r:"48" }));
+
+    var use = el("use",{ x:"-42", y:"-42", width:"84", height:"84", "class":"art" });
+    use.setAttributeNS("http://www.w3.org/1999/xlink","href","#s-"+t.sig);
+    use.setAttribute("href","#s-"+t.sig);
+    g.appendChild(use);
+
+    var cap = el("text",{ "class":"caption", y:"72" });
+    cap.textContent = t.nome;
+    g.appendChild(cap);
+
+    var titulo = el("title",{});
+    titulo.textContent = "Tarefa " + t.n + " — " + t.nome;
+    g.appendChild(titulo);
+
+    g.addEventListener("click", function(){ abrirTarefa(t.n); });
+    g.addEventListener("keydown", function(ev){
+      if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); abrirTarefa(t.n); }
+    });
+    gSigils.appendChild(g);
+  });
+
+  // marcadores de progresso
+  var seals = $("seals");
+  VALIDAS.forEach(function(t){
+    var d = document.createElement("span");
+    d.className = "seal-dot";
+    d.dataset.n = t.n;
+    seals.appendChild(d);
+  });
+
+  function pintarMapa(){
+    var feitos = 0;
+    TAREFAS.forEach(function(t){
+      var g = gSigils.querySelector('[data-n="'+t.n+'"]');
+      var trail = gTrails.querySelector('[data-n="'+t.n+'"]');
+      var st;
+      if(feita(t.n)){ st = "done"; feitos++; }
+      else if(t.pendente){ st = "locked"; }
+      else { st = "open"; }
+      g.setAttribute("data-state", st);
+      if(st === "done") trail.classList.add("is-lit");
+      else trail.classList.remove("is-lit");
+    });
+    Array.prototype.forEach.call(seals.children, function(d){
+      d.classList.toggle("is-done", feita(+d.dataset.n));
+    });
+    $("counter").textContent = feitos + " de " + TOTAL + " selos";
+    $("xmark").classList.toggle("is-ready", feitos === TOTAL);
+    $("xlabel").textContent = feitos === TOTAL ? "ABRIR O BAÚ" : "O PIN";
+    return feitos;
+  }
+
+  // destino clicável quando tudo estiver selado
+  ["xmark","xlabel"].forEach(function(id){
+    var n = $(id);
+    n.style.cursor = "pointer";
+    n.addEventListener("click", function(){
+      if(pintarMapa() === TOTAL) irPara("final");
+    });
+  });
+
+  /* ==========================================================
+     LANTERNA
+     ========================================================== */
+  var stage = $("stage"), lantern = $("lantern");
+  var vagando = null;
+  function moverLuz(px,py){
+    lantern.style.setProperty("--mx", px + "%");
+    lantern.style.setProperty("--my", py + "%");
+  }
+  stage.addEventListener("pointermove", function(ev){
+    if(vagando){ clearInterval(vagando); vagando = null; }
+    var r = stage.getBoundingClientRect();
+    moverLuz(((ev.clientX - r.left)/r.width*100).toFixed(1),
+             ((ev.clientY - r.top)/r.height*100).toFixed(1));
+  });
+  // sem mouse (toque): a luz vagueia sozinha
+  function vagar(){
+    if(vagando) return;
+    vagando = setInterval(function(){
+      moverLuz(20 + Math.random()*60, 20 + Math.random()*60);
+    }, 2600);
+  }
+  if(!window.matchMedia("(hover:hover)").matches && !reduz) vagar();
+  if(reduz) document.body.classList.add("lantern-off");
+
+  /* ==========================================================
+     FOLHA DE TAREFA
+     ========================================================== */
+  var sheet = $("sheet"), waxEl = $("wax"), tarefaAtual = null;
+
+  function desenharSigilo(svg, sigId, animar){
+    svg.innerHTML = "";
+    var origem = document.getElementById("s-" + sigId);
+    Array.prototype.forEach.call(origem.childNodes, function(node){
+      if(node.nodeType === 1) svg.appendChild(node.cloneNode(true));
+    });
+    if(!animar || reduz) return;
+    var traços = svg.querySelectorAll("path,circle,line,polyline");
+    Array.prototype.forEach.call(traços, function(p,i){
+      var L;
+      try{ L = p.getTotalLength(); }catch(e){ return; }
+      if(!L) return;
+      p.style.strokeDasharray = L;
+      p.style.strokeDashoffset = L;
+      p.style.transition = "stroke-dashoffset 1.1s cubic-bezier(.22,.61,.36,1) " + (0.15 + i*0.07) + "s";
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){ p.style.strokeDashoffset = 0; });
+      });
+    });
+  }
+
+  function abrirTarefa(n){
+    var t = TAREFAS.filter(function(x){ return x.n === n; })[0];
+    tarefaAtual = t;
+
+    $("sheet-eyebrow").textContent = t.nome;
+    $("sheet-title").textContent = t.titulo;
+    $("sheet-flag").innerHTML = "TAREFA<b>" + t.n + "</b>";
+
+    var body = $("sheet-body");
+    body.innerHTML = "";
+    t.corpo.forEach(function(txt){
+      var p = document.createElement("p");
+      p.textContent = txt;
+      body.appendChild(p);
+    });
+
+    // ações
+    var acoes = $("sheet-actions");
+    acoes.innerHTML = "";
+    if(t.pendente){
+      var nota = document.createElement("div");
+      nota.className = "locked-note";
+      nota.textContent = "Selo reservado — sem tarefa definida";
+      acoes.appendChild(nota);
+    } else if(feita(t.n)){
+      var ok = document.createElement("div");
+      ok.className = "locked-note";
+      ok.textContent = "Selada";
+      acoes.appendChild(ok);
+    } else {
+      var b = document.createElement("button");
+      b.className = "btn-seal";
+      b.textContent = "Selar esta tarefa";
+      b.addEventListener("click", function(){ selar(b); });
+      acoes.appendChild(b);
+    }
+    var voltar = document.createElement("button");
+    voltar.className = "btn-back";
+    voltar.textContent = "Voltar ao mapa";
+    voltar.addEventListener("click", function(){ irPara("map"); });
+    acoes.appendChild(voltar);
+
+    // lacre já aplicado?
+    waxEl.classList.remove("stamping","settled");
+    waxEl.style.opacity = 0;
+    if(feita(t.n)){ montarLacre(t); waxEl.classList.add("settled"); }
+
+    irPara("task");
+    sheet.scrollTop = 0;
+    desenharSigilo($("sheet-sigil"), t.sig, true);
+  }
+
+  function montarLacre(t){
+    waxEl.innerHTML = "";
+    // borda serrilhada
+    var pts = [], i, ang, r;
+    for(i=0;i<48;i++){
+      ang = i/48*Math.PI*2;
+      r = (i%2 ? 44 : 50);
+      pts.push((Math.cos(ang)*r).toFixed(1) + " " + (Math.sin(ang)*r).toFixed(1));
+    }
+    waxEl.appendChild(el("path",{ d:"M"+pts.join("L")+"Z", fill:"#A81733" }));
+    waxEl.appendChild(el("circle",{ r:"40", fill:"#8E1029" }));
+    waxEl.appendChild(el("circle",{ r:"36", fill:"none", stroke:"#C93450", "stroke-width":"1.5", opacity:".8" }));
+
+    var g = el("g",{ fill:"none", stroke:"#E9A6B2", "stroke-width":"2.4",
+                     "stroke-linecap":"round", "stroke-linejoin":"round", opacity:".9" });
+    var use = el("use",{ x:"-26", y:"-26", width:"52", height:"52" });
+    use.setAttribute("href","#s-"+t.sig);
+    g.appendChild(use);
+    waxEl.appendChild(g);
+  }
+
+  function poeira(){
+    if(reduz) return;
+    var r = waxEl.getBoundingClientRect();
+    var cx = r.left + r.width/2, cy = r.top + r.height/2;
+    for(var i=0;i<18;i++){
+      (function(i){
+        var d = document.createElement("span");
+        d.className = "dust";
+        d.style.left = cx + "px";
+        d.style.top = cy + "px";
+        d.style.opacity = .9;
+        d.style.transform = "scale(" + (0.4 + Math.random()) + ")";
+        document.body.appendChild(d);
+        var ang = Math.random()*Math.PI*2, dist = 40 + Math.random()*110;
+        requestAnimationFrame(function(){
+          d.style.transition = "transform .8s cubic-bezier(.16,.84,.44,1), opacity .8s ease-out";
+          d.style.transform = "translate(" + Math.cos(ang)*dist + "px," +
+                              (Math.sin(ang)*dist + 40) + "px) scale(.2)";
+          d.style.opacity = 0;
+        });
+        setTimeout(function(){ d.remove(); }, 900);
+      })(i);
+    }
+  }
+
+  function selar(botao){
+    var t = tarefaAtual;
+    botao.disabled = true;
+    montarLacre(t);
+    waxEl.classList.add("stamping");
+
+    setTimeout(function(){
+      sheet.classList.add("shake");
+      poeira();
+      if(navigator.vibrate) navigator.vibrate(18);
+    }, reduz ? 0 : 380);
+
+    setTimeout(function(){
+      sheet.classList.remove("shake");
+      if(!feita(t.n)){ estado.feitas.push(t.n); salvar(); }
+      var feitos = pintarMapa();
+      botao.textContent = "Selada";
+      setTimeout(function(){
+        irPara(feitos === TOTAL ? "final" : "map");
+      }, 620);
+    }, reduz ? 60 : 900);
+  }
+
+  /* ==========================================================
+     FINAL — roda do Rotary desenhada
+     ========================================================== */
+  (function montarRoda(){
+    var g = $("pin-gear"), i, a;
+    g.appendChild(el("circle",{ r:"34" }));
+    g.appendChild(el("circle",{ r:"27" }));
+    g.appendChild(el("circle",{ r:"9" }));
+    g.appendChild(el("circle",{ r:"4.5" }));
+    for(i=0;i<24;i++){
+      a = i/24*360;
+      g.appendChild(el("rect",{ x:"-2.6", y:"-40", width:"5.2", height:"7",
+                                transform:"rotate("+a+")", rx:"1" }));
+    }
+    for(i=0;i<6;i++){
+      a = i/6*360;
+      g.appendChild(el("rect",{ x:"-3", y:"-27", width:"6", height:"18",
+                                transform:"rotate("+a+")" }));
+    }
+  })();
+
+  function pintarFinal(){
+    $("final-name").textContent = estado.nome || "Novo associado";
+    var d = new Date();
+    var meses = ["janeiro","fevereiro","março","abril","maio","junho",
+                 "julho","agosto","setembro","outubro","novembro","dezembro"];
+    $("final-date").textContent = "Jaraguá do Sul · " + d.getDate() + " de " +
+      meses[d.getMonth()] + " de " + d.getFullYear();
+  }
+
+  /* ==========================================================
+     LIGAÇÕES
+     ========================================================== */
+  $("nome").value = estado.nome || "";
+  $("btn-abrir").addEventListener("click", function(){
+    estado.nome = $("nome").value.trim();
+    salvar();
+    irPara("map");
+  });
+  $("nome").addEventListener("keydown", function(ev){
+    if(ev.key === "Enter") $("btn-abrir").click();
+  });
+  $("btn-voltar").addEventListener("click", function(){ irPara("map"); });
+  $("btn-reset").addEventListener("click", function(){
+    estado.feitas = [];
+    salvar();
+    pintarMapa();
+  });
+  document.addEventListener("keydown", function(ev){
+    if(ev.key === "Escape" && cenaAtual && cenaAtual.id === "task") irPara("map");
+  });
+
+  var observador = new MutationObserver(function(){
+    if($("final").classList.contains("is-on")) pintarFinal();
+  });
+  observador.observe($("final"), { attributes:true, attributeFilter:["class"] });
+
+  pintarMapa();
+  irPara("cover");
+})();
+</script>

@@ -1,0 +1,1204 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0A09">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Laboratório Mobile — Caça ao Primeiro Pin</title>
+<style>
+/* ============================================================
+   TOKENS (mesmos do projeto)
+   ============================================================ */
+:root{
+  --void:#0B0A09;
+  --void-2:#141110;
+  --ink:#241C15;
+  --ink-soft:#5A4535;
+  --parch-1:#EFDDB8;
+  --parch-2:#DCC79A;
+  --parch-3:#B99A66;
+  --wax:#A81733;
+  --wax-lit:#C93450;
+  --rotaract:#D4145A;
+  --gold:#C8A035;
+  --gold-lit:#EFCE79;
+
+  --display:'Didot','Bodoni MT','Playfair Display',Georgia,serif;
+  --hand:'Segoe Script','Bradley Hand','Snell Roundhand',cursive;
+  --body:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+  --util:'Futura','Avenir Next','Century Gothic',sans-serif;
+
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ease-back:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--void);
+  color:var(--parch-1);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+  overflow-x:hidden;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--gold-lit);outline-offset:3px;border-radius:2px}
+
+.wrap{max-width:680px;margin:0 auto;padding:0 clamp(18px,5vw,32px)}
+section.lab{padding:clamp(56px,9vh,96px) 0;border-bottom:1px solid rgba(239,221,184,.08)}
+.lab-tag{font-family:var(--util);font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.lab h2{font-family:var(--display);font-weight:400;font-size:clamp(25px,6.4vw,38px);letter-spacing:.03em;line-height:1.25;margin-bottom:12px;text-wrap:balance}
+.lab .lead{color:var(--parch-3);line-height:1.75;margin-bottom:28px;font-size:clamp(14.5px,3.8vw,16.5px)}
+.lab .lead b{color:var(--parch-1);font-weight:600}
+.tech{font-family:var(--util);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#6E5A44;margin-top:14px;line-height:2}
+
+.demo{
+  position:relative;border:1px solid rgba(239,221,184,.14);border-radius:3px;
+  background:var(--void-2);min-height:250px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;
+}
+.demo-label{
+  position:absolute;left:14px;top:12px;z-index:8;
+  font-family:var(--util);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--parch-3);opacity:.8;pointer-events:none;
+}
+
+/* botões */
+.btn-lab{
+  font-family:var(--util);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--void);background:var(--parch-1);
+  min-height:48px;padding:14px 24px 13px;border-radius:1px;
+  transition:transform .35s var(--ease-back),background .3s;
+}
+.btn-lab:active{transform:scale(.96);background:var(--gold-lit)}
+.btn-ghost{
+  font-family:var(--util);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--parch-3);min-height:44px;padding:12px 18px;
+  border:1px solid rgba(239,221,184,.25);border-radius:1px;
+  transition:color .3s,border-color .3s,transform .3s var(--ease-back);
+}
+.btn-ghost:active{color:var(--gold-lit);border-color:var(--gold);transform:scale(.96)}
+
+/* ============================================================
+   HERO + CHIPS DE CAPACIDADE
+   ============================================================ */
+#hero{min-height:88svh;display:flex;align-items:center;padding:calc(24px + env(safe-area-inset-top)) 0 40px;border-bottom:1px solid rgba(239,221,184,.08)}
+#hero .kicker{font-family:var(--util);font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
+#hero h1{font-family:var(--display);font-weight:400;font-size:clamp(32px,9.4vw,54px);line-height:1.14;margin-bottom:20px;text-wrap:balance}
+#hero h1 em{font-style:normal;
+  background:linear-gradient(100deg,var(--gold) 20%,var(--gold-lit) 45%,#fff8e0 50%,var(--gold-lit) 55%,var(--gold) 80%);
+  background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4.5s linear infinite;
+}
+@keyframes shimmer{to{background-position:-200% 0}}
+#hero p{color:var(--parch-3);line-height:1.8;margin-bottom:26px;max-width:52ch}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{
+  font-family:var(--util);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  padding:8px 12px 7px;border-radius:2px;
+  border:1px solid rgba(239,221,184,.16);color:var(--parch-3);
+  display:flex;align-items:center;gap:7px;
+}
+.chip i{font-style:normal;font-size:11px}
+.chip.sim{border-color:rgba(200,160,53,.5);color:var(--gold-lit)}
+.chip.nao{opacity:.45}
+.aviso-https{
+  font-family:var(--util);font-size:10px;letter-spacing:.14em;line-height:1.9;
+  color:var(--wax-lit);border:1px solid rgba(168,23,51,.4);padding:12px 16px;border-radius:2px;
+  text-transform:uppercase;display:none;
+}
+
+/* botão de som fixo */
+#som-master{
+  position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:950;
+  font-family:var(--util);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  background:var(--void-2);border:1px solid rgba(239,221,184,.3);color:var(--parch-1);
+  padding:12px 16px;border-radius:30px;
+  box-shadow:0 10px 30px -10px #000;
+  display:flex;align-items:center;gap:8px;
+}
+#som-master .led{width:7px;height:7px;border-radius:50%;background:var(--ink-soft);transition:background .3s,box-shadow .3s}
+#som-master.ligado .led{background:var(--gold-lit);box-shadow:0 0 8px var(--gold)}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:calc(70px + env(safe-area-inset-bottom));z-index:960;
+  transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  font-family:var(--util);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  background:var(--parch-1);color:var(--void);padding:12px 20px;border-radius:2px;
+  transition:transform .4s var(--ease),opacity .4s;
+  max-width:86vw;text-align:center;line-height:1.6;
+}
+#toast.mostra{transform:translate(-50%,0);opacity:1}
+
+/* ============================================================
+   01 SOM
+   ============================================================ */
+.soundboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.som-btn{
+  min-height:86px;border:1px solid rgba(239,221,184,.16);border-radius:3px;
+  background:var(--void-2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  transition:transform .3s var(--ease-back),border-color .3s;
+}
+.som-btn:active{transform:scale(.95);border-color:var(--gold)}
+.som-btn b{font-family:var(--display);font-weight:400;font-size:16px;letter-spacing:.12em}
+.som-btn span{font-family:var(--util);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--parch-3)}
+.som-btn.tocando{border-color:var(--gold);box-shadow:0 0 18px -6px var(--gold)}
+.som-btn.amb-on{border-color:var(--gold);background:#1A1408}
+
+/* ============================================================
+   02 TOQUE
+   ============================================================ */
+.tap-area{background:linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));
+  color:var(--ink);min-height:280px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.tap-area .dica{font-family:var(--util);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.55;pointer-events:none;text-align:center;line-height:2}
+.splat{position:absolute;pointer-events:none;transform:translate(-50%,-50%)}
+.splat svg{overflow:visible;display:block}
+.splat .gota{transform-origin:center;animation:gota .5s var(--ease-back) forwards;opacity:0}
+@keyframes gota{0%{opacity:0;transform:scale(0)}60%{opacity:1;transform:scale(1.15)}100%{opacity:.92;transform:scale(1)}}
+.anel{
+  position:absolute;border:1.5px solid rgba(36,28,21,.6);border-radius:50%;
+  pointer-events:none;transform:translate(-50%,-50%);
+  animation:anelExpande .6s var(--ease) forwards;
+}
+@keyframes anelExpande{from{width:8px;height:8px;opacity:.8}to{width:110px;height:110px;opacity:0}}
+
+/* segurar para selar */
+.press-demo{background:linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));min-height:300px;flex-direction:column;gap:14px}
+.press-alvo{
+  position:relative;width:150px;height:150px;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+}
+.press-alvo svg{width:100%;height:100%;display:block}
+.press-ring-bg{fill:none;stroke:rgba(36,28,21,.18);stroke-width:3}
+.press-ring{
+  fill:none;stroke:var(--wax);stroke-width:4;stroke-linecap:round;
+  stroke-dasharray:289;stroke-dashoffset:289;
+  transform:rotate(-90deg);transform-origin:center;
+}
+.press-ring.solto{transition:stroke-dashoffset .4s var(--ease)}
+.press-lacre{opacity:0;transform:scale(1.6);transform-origin:center;transform-box:fill-box}
+.press-alvo.selado .press-lacre{
+  animation:lacreCai .45s var(--ease) forwards;
+}
+@keyframes lacreCai{
+  0%{opacity:0;transform:scale(1.8) rotate(-14deg)}
+  60%{opacity:1;transform:scale(.94) rotate(-6deg)}
+  100%{opacity:1;transform:scale(1) rotate(-8deg)}
+}
+.press-hint{font-family:var(--util);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink);opacity:.6}
+
+/* ============================================================
+   03 GESTOS
+   ============================================================ */
+.deck-demo{background:var(--void-2);min-height:330px;overflow:visible}
+.deck{position:relative;width:min(72vw,230px);aspect-ratio:3/4}
+.scard{
+  position:absolute;inset:0;border-radius:5px;
+  background:linear-gradient(155deg,var(--parch-1),var(--parch-2) 62%,var(--parch-3));
+  color:var(--ink);box-shadow:0 22px 44px -18px #000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding:20px;text-align:center;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;
+  transition:transform .45s var(--ease),opacity .45s;
+  will-change:transform;
+}
+.scard.pega{transition:none}
+.scard .num{font-family:var(--util);font-size:9px;letter-spacing:.3em;text-transform:uppercase;opacity:.55}
+.scard b{font-family:var(--display);font-weight:400;font-size:21px;letter-spacing:.16em}
+.scard p{font-family:var(--hand);font-size:15px;line-height:1.5;opacity:.85}
+.scard .selocirc{width:52px;height:52px;border:2px solid var(--wax);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:20px;color:var(--wax)}
+
+.pinch-demo{background:var(--void-2);min-height:330px;touch-action:none;user-select:none;-webkit-user-select:none}
+.pinch-mundo{
+  position:absolute;inset:0;transform-origin:0 0;will-change:transform;
+  background:
+    radial-gradient(circle at 22% 28%,rgba(200,160,53,.14),transparent 24%),
+    radial-gradient(circle at 74% 64%,rgba(168,23,51,.15),transparent 20%),
+    linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));
+}
+.pinch-mundo svg{position:absolute;inset:0;width:100%;height:100%}
+.pinch-dica{position:absolute;z-index:7;bottom:12px;left:50%;transform:translateX(-50%);
+  font-family:var(--util);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);opacity:.55;pointer-events:none;white-space:nowrap}
+
+/* ============================================================
+   04 GIROSCÓPIO
+   ============================================================ */
+.giro-status{
+  font-family:var(--util);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--parch-3);margin:14px 0 22px;line-height:2;
+}
+.giro-status b{color:var(--gold-lit);font-weight:400}
+.luz-box{position:relative;min-height:280px;background:
+  radial-gradient(ellipse at 30% 20%,rgba(255,255,255,.25),transparent 55%),
+  linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));
+  touch-action:none;
+}
+.luz-box .conteudo{
+  position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;
+  align-items:center;justify-content:center;color:var(--ink);text-align:center;padding:20px;
+}
+.luz-box .conteudo b{font-family:var(--display);font-size:19px;letter-spacing:.12em}
+.luz-box .conteudo span{font-size:13px;opacity:.7;max-width:30ch;line-height:1.6}
+.luz-veu{
+  position:absolute;inset:0;z-index:5;pointer-events:none;
+  background:radial-gradient(circle 130px at var(--mx,50%) var(--my,50%),
+    transparent 0%,rgba(8,5,2,.25) 45%,rgba(8,5,2,.93) 100%);
+}
+.tilt-demo{background:var(--void-2);min-height:330px;perspective:900px;touch-action:pan-y}
+.tilt-card{
+  position:relative;width:min(62vw,210px);aspect-ratio:3/4;
+  background:linear-gradient(155deg,var(--parch-1),var(--parch-2) 62%,var(--parch-3));
+  border-radius:4px;box-shadow:0 30px 60px -24px #000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  color:var(--ink);transform-style:preserve-3d;
+  transition:transform .15s ease-out;will-change:transform;
+}
+.tilt-card .selo3d{width:44%;transform:translateZ(36px);filter:drop-shadow(0 10px 14px rgba(0,0,0,.35))}
+.tilt-card b{font-family:var(--display);letter-spacing:.2em;font-size:15px;transform:translateZ(24px)}
+.tilt-card i{font-style:normal;font-family:var(--util);font-size:8.5px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;transform:translateZ(18px)}
+.tilt-brilho{
+  position:absolute;inset:0;border-radius:4px;pointer-events:none;
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.5),transparent 55%);
+  mix-blend-mode:soft-light;
+}
+
+/* ============================================================
+   05 CHACOALHAR — o baú
+   ============================================================ */
+.bau-demo{background:radial-gradient(ellipse at 50% 80%,#241608 0%,var(--void-2) 70%);min-height:340px;flex-direction:column;gap:22px}
+.bau-palco{position:relative;width:170px}
+.bau-palco svg{width:100%;display:block;filter:drop-shadow(0 16px 26px rgba(0,0,0,.7))}
+.bau-tampa{transform-origin:14% 44%;transition:transform .5s var(--ease-back)}
+.bau-demo.aberto .bau-tampa{transform:rotate(-36deg)}
+.bau-luz{opacity:0;transition:opacity .4s}
+.bau-demo.aberto .bau-luz{opacity:1}
+.bau-demo.tremendo .bau-palco{animation:baushake .5s var(--ease)}
+@keyframes baushake{
+  0%,100%{transform:none}
+  20%{transform:translate(-4px,2px) rotate(-2deg)}
+  45%{transform:translate(4px,-2px) rotate(2deg)}
+  70%{transform:translate(-3px,1px) rotate(-1.4deg)}
+}
+.moeda{
+  position:absolute;border-radius:50%;pointer-events:none;z-index:9;
+  background:radial-gradient(circle at 35% 32%,#FFF3C4,var(--gold-lit) 45%,var(--gold) 80%);
+  box-shadow:0 0 6px rgba(200,160,53,.7);
+}
+.bau-hint{font-family:var(--util);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--parch-3);text-align:center;line-height:2}
+
+/* ============================================================
+   06 VIBRAÇÃO
+   ============================================================ */
+.vib-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+
+/* ============================================================
+   07 SISTEMA
+   ============================================================ */
+.sys-grid{display:flex;flex-direction:column;gap:12px}
+.sys-item{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  border:1px solid rgba(239,221,184,.14);border-radius:3px;padding:16px;
+  background:var(--void-2);
+}
+.sys-item .info b{font-family:var(--display);font-weight:400;font-size:16px;letter-spacing:.1em;display:block;margin-bottom:4px}
+.sys-item .info span{font-size:12.5px;color:var(--parch-3);line-height:1.6;display:block}
+
+/* ============================================================
+   RESUMO
+   ============================================================ */
+.resumo{padding:clamp(56px,9vh,96px) 0 130px}
+.tabela-scroll{overflow-x:auto;margin-top:8px}
+.resumo table{width:100%;min-width:520px;border-collapse:collapse;font-size:13.5px}
+.resumo th{text-align:left;font-family:var(--util);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);padding:11px 12px;border-bottom:1px solid rgba(239,221,184,.2);white-space:nowrap}
+.resumo td{padding:12px;border-bottom:1px solid rgba(239,221,184,.08);color:var(--parch-2);line-height:1.6;vertical-align:top}
+.resumo td:first-child{font-family:var(--display);letter-spacing:.03em;white-space:nowrap}
+.ok{color:var(--gold-lit)}
+.nok{color:var(--wax-lit)}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<!-- símbolos -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lacre" viewBox="-60 -60 120 120">
+    <path id="lacre-serrilha" fill="#A81733"/>
+    <circle r="40" fill="#8E1029"/>
+    <circle r="36" fill="none" stroke="#C93450" stroke-width="1.5" opacity=".8"/>
+    <g fill="none" stroke="#E9A6B2" stroke-width="2.6" stroke-linecap="round">
+      <circle r="20"/><path d="M0 -14V6"/><path d="M-6 -8 0 -14 6 -8"/>
+    </g>
+  </symbol>
+</svg>
+
+<button id="som-master" aria-label="Ligar ou desligar o som"><span class="led"></span><span id="som-master-txt">som off</span></button>
+<div id="toast" role="status"></div>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <div class="wrap">
+    <div class="kicker">Laboratório mobile · Caça ao Primeiro Pin</div>
+    <h1>A caça na palma<br><em>da mão</em></h1>
+    <p>O celular tem superpoderes que o desktop não tem: vibra, escuta o movimento,
+       sabe quando você inclina o aparelho. Este laboratório testa cada um deles
+       na estética do mapa. Primeiro, veja o que <b>este aparelho</b> suporta:</p>
+    <div class="chips" id="chips"></div>
+    <div class="aviso-https" id="aviso-https">
+      ⚠ Esta página não está em HTTPS — giroscópio e acelerômetro ficam bloqueados pelo navegador.
+      Abra a versão publicada (link seguro) para testar os sensores.
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01 SOM ============ -->
+<section class="lab" id="s-som">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 01</div>
+    <h2 class="reveal">A caça tem trilha sonora</h2>
+    <p class="lead reveal d1">Nenhum arquivo de áudio: todos os sons abaixo são <b>sintetizados na hora</b>
+       pelo Web Audio — papel, carimbo, moedas, o rangido do baú. Zero download, funciona offline.
+       Toque num botão (o navegador exige um primeiro toque para liberar o som) e ligue a
+       atmosfera da caverna para ouvir o vento contínuo.</p>
+    <div class="soundboard reveal d1">
+      <button class="som-btn" data-som="papel"><b>Papel</b><span>virar página / abrir carta</span></button>
+      <button class="som-btn" data-som="carimbo"><b>Carimbo</b><span>selar tarefa</span></button>
+      <button class="som-btn" data-som="moedas"><b>Moedas</b><span>abrir o baú</span></button>
+      <button class="som-btn" data-som="bau"><b>Rangido</b><span>tampa do baú</span></button>
+      <button class="som-btn" data-som="conquista"><b>Conquista</b><span>ganhar o pin</span></button>
+      <button class="som-btn" id="btn-amb"><b>Atmosfera</b><span>vento da caverna · ligar</span></button>
+    </div>
+    <div class="tech reveal d2">Técnica: Web Audio API — osciladores + ruído filtrado com envelopes · sempre com botão de mudo visível (canto da tela)</div>
+  </div>
+</section>
+
+<!-- ============ 02 TOQUE ============ -->
+<section class="lab" id="s-toque">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 02</div>
+    <h2 class="reveal">O dedo é o novo mouse — e é melhor</h2>
+    <p class="lead reveal d1">No celular não existe hover: tudo precisa responder ao <b>toque direto</b>.
+       Dois padrões fortes: o toque que deixa marca (com som e vibração juntos — tríade sensorial),
+       e o <b>segurar para selar</b> — pressionar e manter por um segundo, como quem pressiona um
+       carimbo de verdade contra o papel. Muito mais cerimonial que um clique.</p>
+    <div class="demo tap-area reveal d1" id="demo-tap">
+      <span class="demo-label" style="color:var(--ink)">Toque em qualquer lugar</span>
+      <span class="dica">cada toque deixa cera + som + vibração<br>as marcas ficam na página</span>
+    </div>
+    <div class="demo press-demo reveal d2" id="demo-press">
+      <span class="demo-label" style="color:var(--ink)">Segure para selar</span>
+      <div class="press-alvo" id="press-alvo">
+        <svg viewBox="-60 -60 120 120">
+          <circle class="press-ring-bg" r="46"/>
+          <circle class="press-ring" id="press-ring" r="46"/>
+          <g class="press-lacre" id="press-lacre">
+            <use href="#lacre" x="-40" y="-40" width="80" height="80"></use>
+          </g>
+        </svg>
+      </div>
+      <div class="press-hint" id="press-hint">pressione e segure o círculo</div>
+    </div>
+    <div class="tech reveal d2">Técnica: Pointer Events · anel de progresso SVG (stroke-dashoffset) · vibração em marcos do progresso · -webkit-touch-callout:none para não abrir menu do sistema</div>
+  </div>
+</section>
+
+<!-- ============ 03 GESTOS ============ -->
+<section class="lab" id="s-gestos">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 03</div>
+    <h2 class="reveal">Gestos que o polegar já conhece</h2>
+    <p class="lead reveal d1">Deslizar e beliscar são linguagem nativa do celular.
+       As tarefas da caça podem virar um <b>baralho de cartas</b> — desliza para o lado
+       para folhear —, e o mapa pode ganhar <b>zoom de pinça</b> para examinar de perto,
+       como quem aproxima uma lupa do pergaminho.</p>
+    <div class="demo deck-demo reveal d1" id="demo-deck">
+      <span class="demo-label">Deslize a carta para o lado</span>
+      <div class="deck" id="deck"></div>
+    </div>
+    <div class="demo pinch-demo reveal d2" id="demo-pinch">
+      <span class="demo-label" style="z-index:7">Belisque para dar zoom · arraste para mover</span>
+      <div class="pinch-mundo" id="pinch-mundo">
+        <svg viewBox="0 0 700 460" preserveAspectRatio="none">
+          <path d="M40 420c60-24 130-8 190-30s90-60 160-52 110 50 180 44 70-30 110-24" fill="none" stroke="#241C15" stroke-width="2" opacity=".4"/>
+          <path d="M150 60c22 66-16 110 8 176 20 62 96 78 108 148" fill="none" stroke="#241C15" stroke-width="1.2" stroke-dasharray="6 5" opacity=".4"/>
+          <text x="210" y="150" font-family="Georgia" font-size="24" fill="#241C15" opacity=".3" letter-spacing="8">TERRAS ALTAS</text>
+          <text x="360" y="380" font-family="Georgia" font-size="24" fill="#241C15" opacity=".3" letter-spacing="8">MAR DA ESPERA</text>
+          <g stroke="#A81733" stroke-width="5" stroke-linecap="round" opacity=".85">
+            <path d="M488 205 528 245M528 205 488 245"/>
+          </g>
+          <text x="508" y="270" font-family="Georgia" font-size="11" fill="#241C15" opacity=".5" text-anchor="middle" letter-spacing="3">O PIN</text>
+        </svg>
+      </div>
+      <span class="pinch-dica">no desktop: arraste com o mouse</span>
+    </div>
+    <div class="tech reveal d2">Técnica: Pointer Events com dois dedos (escala pela distância entre toques) · touch-action:pan-y no baralho preserva a rolagem vertical da página</div>
+  </div>
+</section>
+
+<!-- ============ 04 GIROSCÓPIO ============ -->
+<section class="lab" id="s-giro">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 04</div>
+    <h2 class="reveal">Incline o aparelho, mova a luz</h2>
+    <p class="lead reveal d1">O efeito mais mágico do celular: a lanterna do mapa deixa de seguir
+       um mouse que não existe e passa a seguir a <b>inclinação física do aparelho</b> — o celular
+       vira a própria lanterna. O cartão 3D também inclina com o corpo. No iPhone o navegador
+       pede permissão, por isso o botão abaixo.</p>
+    <button class="btn-lab reveal d1" id="btn-giro">Ativar sensores de movimento</button>
+    <div class="giro-status reveal d1" id="giro-status">Sensores inativos — no desktop, os demos respondem ao mouse.</div>
+    <div class="demo luz-box reveal d1" id="demo-giroluz">
+      <span class="demo-label" style="z-index:6;color:var(--parch-1)">Lanterna por inclinação</span>
+      <div class="conteudo"><b>SEGREDO</b><span>incline o celular para varrer a luz pelo pergaminho</span></div>
+      <div class="luz-veu"></div>
+    </div>
+    <div class="demo tilt-demo reveal d2" id="demo-girotilt">
+      <span class="demo-label">Cartão 3D por inclinação</span>
+      <div class="tilt-card" id="tilt-card">
+        <svg class="selo3d" viewBox="-60 -60 120 120"><use href="#lacre"/></svg>
+        <b>A RAIZ</b>
+        <i>Tarefa · 7</i>
+        <div class="tilt-brilho" id="tilt-brilho"></div>
+      </div>
+    </div>
+    <div class="tech reveal d2">Técnica: DeviceOrientationEvent (beta/gamma) com requestPermission no iOS · exige HTTPS · fallback para pointermove no desktop</div>
+  </div>
+</section>
+
+<!-- ============ 05 CHACOALHAR ============ -->
+<section class="lab" id="s-shake">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 05</div>
+    <h2 class="reveal">Chacoalhe para abrir o baú</h2>
+    <p class="lead reveal d1">O acelerômetro detecta uma <b>chacoalhada</b> — e esse pode ser o
+       ritual de abertura do tesouro final: "complete as 6 tarefas e chacoalhe o celular para
+       abrir o baú". Impossível de esquecer. Ative os sensores no capítulo anterior e chacoalhe;
+       no desktop, use o botão.</p>
+    <div class="demo bau-demo reveal d1" id="demo-bau">
+      <span class="demo-label">O baú do primeiro pin</span>
+      <div class="bau-palco" id="bau-palco">
+        <svg viewBox="0 0 200 170">
+          <g class="bau-luz">
+            <path d="M40 66 12 6h176l-28 60Z" fill="#EFCE79" opacity=".22"/>
+          </g>
+          <path d="M24 80h152v62a8 8 0 0 1-8 8H32a8 8 0 0 1-8-8Z" fill="#A45A28" stroke="#5C2E11" stroke-width="3"/>
+          <path d="M36 88h128v14H36Z" fill="#E9A93C" opacity=".9"/>
+          <circle cx="100" cy="120" r="9" fill="#5C2E11"/>
+          <g class="bau-tampa">
+            <path d="M24 80a76 40 0 0 1 152 0Z" fill="#8B4A22" stroke="#5C2E11" stroke-width="3"/>
+            <path d="M24 72h152" stroke="#5C2E11" stroke-width="0"/>
+          </g>
+        </svg>
+      </div>
+      <div class="bau-hint" id="bau-hint">chacoalhe o celular<br>ou <button class="btn-ghost" id="btn-fake-shake" style="margin-top:8px">simular chacoalhada</button></div>
+    </div>
+    <div class="tech reveal d2">Técnica: DeviceMotionEvent — variação brusca da aceleração dispara o evento · moedas com física simples · som + vibração juntos</div>
+  </div>
+</section>
+
+<!-- ============ 06 VIBRAÇÃO ============ -->
+<section class="lab" id="s-vib">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 06</div>
+    <h2 class="reveal">Padrões de vibração são vocabulário</h2>
+    <p class="lead reveal d1">Uma vibração não é só "buzz": padrões diferentes comunicam coisas
+       diferentes — um tique leve confirma, um golpe seco carimba, uma sequência crescente celebra.
+       <b>Importante:</b> o iPhone não expõe vibração para páginas web; no Android funciona.
+       Por isso ela é sempre reforço, nunca o único aviso.</p>
+    <div class="vib-grid reveal d1">
+      <button class="btn-ghost" data-vib="10" data-nome="tique">Tique leve<br><small style="letter-spacing:.1em;opacity:.6">confirmar toque</small></button>
+      <button class="btn-ghost" data-vib="12,40,18" data-nome="carimbo">Golpe do carimbo<br><small style="letter-spacing:.1em;opacity:.6">selar tarefa</small></button>
+      <button class="btn-ghost" data-vib="20,50,20,50,90" data-nome="fanfarra">Fanfarra<br><small style="letter-spacing:.1em;opacity:.6">conquistar o pin</small></button>
+    </div>
+    <div class="tech reveal d2">Técnica: navigator.vibrate([padrão]) · Android ✓ · iPhone ✕ (usar som + animação como reforço)</div>
+  </div>
+</section>
+
+<!-- ============ 07 SISTEMA ============ -->
+<section class="lab" id="s-sys">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 07</div>
+    <h2 class="reveal">O aparelho a favor da caça</h2>
+    <p class="lead reveal d1">Recursos de sistema que completam a experiência — do compartilhar
+       nativo (o link da caça circula no WhatsApp com um toque) à tela que não apaga enquanto
+       o convidado lê o mapa.</p>
+    <div class="sys-grid reveal d1">
+      <div class="sys-item">
+        <div class="info"><b>Compartilhar</b><span>abre a folha nativa do sistema — WhatsApp, etc.</span></div>
+        <button class="btn-ghost" id="btn-share">Testar</button>
+      </div>
+      <div class="sys-item">
+        <div class="info"><b>Tela cheia</b><span>imersão total no mapa (Android e iPad; iPhone não)</span></div>
+        <button class="btn-ghost" id="btn-full">Testar</button>
+      </div>
+      <div class="sys-item">
+        <div class="info"><b>Tela sempre acesa</b><span>Wake Lock — o mapa não apaga durante a leitura</span></div>
+        <button class="btn-ghost" id="btn-wake">Ativar</button>
+      </div>
+      <div class="sys-item">
+        <div class="info"><b>Instalar como app</b><span>com um manifest, "adicionar à tela de início" abre a caça em janela própria, sem barra do navegador — já preparei as metas de status bar preta</span></div>
+        <span class="tech" style="margin:0">config.</span>
+      </div>
+    </div>
+    <div class="tech reveal d2">Técnica: navigator.share · Fullscreen API · Screen Wake Lock API · Web App Manifest</div>
+  </div>
+</section>
+
+<!-- ============ RESUMO ============ -->
+<section class="resumo">
+  <div class="wrap">
+    <div class="lab-tag reveal">Mapa de aplicação</div>
+    <h2 class="reveal" style="font-family:var(--display);font-weight:400;font-size:clamp(25px,6.4vw,38px);margin-bottom:12px">Onde cada recurso entra — e onde funciona</h2>
+    <div class="tabela-scroll reveal d1">
+      <table>
+        <tr><th>Recurso</th><th>Uso na caça</th><th>iPhone</th><th>Android</th></tr>
+        <tr><td>Som sintetizado</td><td>Carimbo ao selar, moedas no baú, papel nas transições. Sempre com mudo visível.</td><td class="ok">✓ após 1º toque</td><td class="ok">✓</td></tr>
+        <tr><td>Segurar p/ selar</td><td>Substituir o botão "Selar" — segurar 1s = pressionar o carimbo.</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td>Vibração</td><td>Reforço do carimbo e da conquista.</td><td class="nok">✕</td><td class="ok">✓</td></tr>
+        <tr><td>Giroscópio</td><td>Lanterna do mapa segue a inclinação do aparelho.</td><td class="ok">✓ pede permissão + HTTPS</td><td class="ok">✓ HTTPS</td></tr>
+        <tr><td>Chacoalhar</td><td>Ritual de abertura do baú final.</td><td class="ok">✓ mesma permissão</td><td class="ok">✓</td></tr>
+        <tr><td>Deslizar cartas</td><td>Folhear as tarefas como um baralho.</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td>Zoom de pinça</td><td>Examinar o mapa de perto.</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td>Compartilhar</td><td>Botão "convidar para a caça" → WhatsApp.</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td>Tela cheia</td><td>Modo imersão no mapa.</td><td class="nok">✕ iPhone / ✓ iPad</td><td class="ok">✓</td></tr>
+        <tr><td>Tela sempre acesa</td><td>Durante leitura das tarefas.</td><td class="ok">✓ 16.4+</td><td class="ok">✓</td></tr>
+        <tr><td>Instalar como app</td><td>Ícone próprio na tela de início.</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      </table>
+    </div>
+    <p class="lead reveal d2" style="margin-top:30px">Minha recomendação de trio para o celular:
+      <b>segurar para selar</b> (com som de carimbo + vibração), <b>lanterna por inclinação</b>
+      (substitui a luz que hoje vagueia sozinha no toque) e <b>chacoalhar para abrir o baú</b>
+      no final. São três momentos físicos que o livro impresso jamais teria.</p>
+  </div>
+</section>
+
+<script>
+(function(){
+"use strict";
+function $(id){ return document.getElementById(id); }
+var reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* serrilha do lacre */
+(function(){
+  var pts=[],i,a,r;
+  for(i=0;i<48;i++){
+    a=i/48*Math.PI*2; r=(i%2?44:50);
+    pts.push((Math.cos(a)*r).toFixed(1)+" "+(Math.sin(a)*r).toFixed(1));
+  }
+  $("lacre-serrilha").setAttribute("d","M"+pts.join("L")+"Z");
+})();
+
+/* ==========================================================
+   TOAST
+   ========================================================== */
+var toastTimer=null;
+function toast(msg){
+  var t=$("toast");
+  t.textContent=msg;
+  t.classList.add("mostra");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ t.classList.remove("mostra"); },2200);
+}
+
+/* ==========================================================
+   CHIPS DE CAPACIDADE
+   ========================================================== */
+(function(){
+  var fs=document.documentElement;
+  var caps=[
+    ["Toque", navigator.maxTouchPoints>0],
+    ["Multitoque", navigator.maxTouchPoints>1],
+    ["Vibração", "vibrate" in navigator],
+    ["Web Audio", !!(window.AudioContext||window.webkitAudioContext)],
+    ["Giroscópio", "DeviceOrientationEvent" in window],
+    ["Acelerômetro", "DeviceMotionEvent" in window],
+    ["Compartilhar", "share" in navigator],
+    ["Tela cheia", !!(fs.requestFullscreen||fs.webkitRequestFullscreen)],
+    ["Sempre acesa", "wakeLock" in navigator],
+    ["HTTPS", window.isSecureContext]
+  ];
+  var box=$("chips");
+  caps.forEach(function(c){
+    var d=document.createElement("span");
+    d.className="chip "+(c[1]?"sim":"nao");
+    d.innerHTML="<i>"+(c[1]?"✓":"✕")+"</i>"+c[0];
+    box.appendChild(d);
+  });
+  if(!window.isSecureContext) $("aviso-https").style.display="block";
+})();
+
+/* ==========================================================
+   MOTOR DE SOM — tudo sintetizado
+   ========================================================== */
+var actx=null, master=null, somLigado=false;
+function audio(){
+  if(!actx){
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return null;
+    actx=new AC();
+    master=actx.createGain();
+    master.gain.value=0;             // começa mudo até ligar
+    master.connect(actx.destination);
+  }
+  if(actx.state==="suspended") actx.resume();
+  return actx;
+}
+function ligarSom(liga){
+  somLigado=liga;
+  var c=audio();
+  if(c) master.gain.setTargetAtTime(liga?0.7:0, c.currentTime, .05);
+  $("som-master").classList.toggle("ligado", liga);
+  $("som-master-txt").textContent=liga?"som on":"som off";
+}
+$("som-master").addEventListener("click", function(){ ligarSom(!somLigado); });
+
+function ruido(dur){
+  var sr=actx.sampleRate, b=actx.createBuffer(1,Math.ceil(sr*dur),sr), d=b.getChannelData(0), i;
+  for(i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  return b;
+}
+function envelope(g,t0,ataque,pico,dur){
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.linearRampToValueAtTime(pico,t0+ataque);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+}
+
+var SONS={
+  papel:function(){
+    var c=audio(); if(!c) return;
+    var t=c.currentTime;
+    var src=c.createBufferSource(); src.buffer=ruido(.4);
+    var f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=1500; f.Q.value=.7;
+    var g=c.createGain(); envelope(g,t,.02,.5,.38);
+    src.connect(f); f.connect(g); g.connect(master);
+    src.start(t); src.stop(t+.42);
+  },
+  carimbo:function(){
+    var c=audio(); if(!c) return;
+    var t=c.currentTime;
+    var o=c.createOscillator(); o.type="sine";
+    o.frequency.setValueAtTime(130,t);
+    o.frequency.exponentialRampToValueAtTime(42,t+.16);
+    var g=c.createGain(); envelope(g,t,.005,.9,.2);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+.22);
+    var src=c.createBufferSource(); src.buffer=ruido(.12);
+    var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=500;
+    var g2=c.createGain(); envelope(g2,t,.003,.45,.11);
+    src.connect(f); f.connect(g2); g2.connect(master);
+    src.start(t); src.stop(t+.13);
+  },
+  moedas:function(){
+    var c=audio(); if(!c) return;
+    var t=c.currentTime;
+    [0,.07,.16,.27,.4].forEach(function(off){
+      var f0=2300+Math.random()*1900;
+      [1,2.01].forEach(function(mult,idx){
+        var o=c.createOscillator(); o.type="triangle";
+        o.frequency.value=f0*mult;
+        var g=c.createGain();
+        envelope(g,t+off,.004,idx?0.06:0.16,.15);
+        o.connect(g); g.connect(master);
+        o.start(t+off); o.stop(t+off+.17);
+      });
+    });
+  },
+  bau:function(){
+    var c=audio(); if(!c) return;
+    var t=c.currentTime;
+    var o=c.createOscillator(); o.type="sawtooth";
+    o.frequency.setValueAtTime(92,t);
+    o.frequency.linearRampToValueAtTime(55,t+.5);
+    var lfo=c.createOscillator(); lfo.frequency.value=9;
+    var lg=c.createGain(); lg.gain.value=16;
+    lfo.connect(lg); lg.connect(o.frequency);
+    var f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=300; f.Q.value=1.2;
+    var g=c.createGain(); envelope(g,t,.06,.22,.55);
+    o.connect(f); f.connect(g); g.connect(master);
+    o.start(t); lfo.start(t); o.stop(t+.58); lfo.stop(t+.58);
+    var th=c.createOscillator(); th.type="sine"; th.frequency.value=68;
+    var tg=c.createGain(); envelope(tg,t+.45,.005,.6,.18);
+    th.connect(tg); tg.connect(master); th.start(t+.45); th.stop(t+.66);
+  },
+  conquista:function(){
+    var c=audio(); if(!c) return;
+    var t=c.currentTime;
+    [523.25,659.25,783.99,1046.5].forEach(function(fr,i){
+      var o=c.createOscillator(); o.type="sine"; o.frequency.value=fr;
+      var o2=c.createOscillator(); o2.type="triangle"; o2.frequency.value=fr*2;
+      var g=c.createGain(); envelope(g,t+i*.13,.01,.22,.55);
+      var g2=c.createGain(); envelope(g2,t+i*.13,.01,.05,.5);
+      o.connect(g); g.connect(master); o2.connect(g2); g2.connect(master);
+      o.start(t+i*.13); o.stop(t+i*.13+.6);
+      o2.start(t+i*.13); o2.stop(t+i*.13+.55);
+    });
+  }
+};
+function tocar(nome){
+  if(!somLigado) ligarSom(true);   // primeiro toque num som já liga o motor
+  SONS[nome] && SONS[nome]();
+}
+document.querySelectorAll("[data-som]").forEach(function(b){
+  b.addEventListener("click", function(){
+    tocar(b.dataset.som);
+    b.classList.add("tocando");
+    setTimeout(function(){ b.classList.remove("tocando"); },600);
+  });
+});
+
+/* atmosfera contínua: vento + grilos */
+var amb=null;
+$("btn-amb").addEventListener("click", function(){
+  var btn=this;
+  if(amb){
+    amb.vento.stop(); amb.lfo.stop(); clearInterval(amb.grilos);
+    amb=null;
+    btn.classList.remove("amb-on");
+    btn.querySelector("span").textContent="vento da caverna · ligar";
+    return;
+  }
+  if(!somLigado) ligarSom(true);
+  var c=audio(); if(!c) return;
+  var vento=c.createBufferSource(); vento.buffer=ruido(2); vento.loop=true;
+  var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=350;
+  var g=c.createGain(); g.gain.value=.1;
+  var lfo=c.createOscillator(); lfo.frequency.value=.13;
+  var lg=c.createGain(); lg.gain.value=.05;
+  lfo.connect(lg); lg.connect(g.gain);
+  vento.connect(f); f.connect(g); g.connect(master);
+  vento.start(); lfo.start();
+  var grilos=setInterval(function(){
+    if(!amb) return;
+    var t=c.currentTime;
+    [0,.09,.18].forEach(function(off){
+      var o=c.createOscillator(); o.type="sine"; o.frequency.value=4200+Math.random()*300;
+      var gg=c.createGain(); envelope(gg,t+off,.008,.05,.05);
+      o.connect(gg); gg.connect(master);
+      o.start(t+off); o.stop(t+off+.06);
+    });
+  }, 1900);
+  amb={vento:vento,lfo:lfo,grilos:grilos};
+  btn.classList.add("amb-on");
+  btn.querySelector("span").textContent="vento da caverna · desligar";
+});
+
+/* ==========================================================
+   VIBRAÇÃO
+   ========================================================== */
+function vibrar(padrao){
+  if(navigator.vibrate) navigator.vibrate(padrao);
+}
+document.querySelectorAll("[data-vib]").forEach(function(b){
+  b.addEventListener("click", function(){
+    if(!navigator.vibrate){ toast("Este aparelho não expõe vibração (iPhone não suporta)"); return; }
+    vibrar(b.dataset.vib.split(",").map(Number));
+    toast("Padrão \""+b.dataset.nome+"\" enviado");
+  });
+});
+
+/* ==========================================================
+   02 TOQUE — marca de cera
+   ========================================================== */
+$("demo-tap").addEventListener("pointerdown", function(e){
+  var r=this.getBoundingClientRect();
+  var x=e.clientX-r.left, y=e.clientY-r.top;
+  var anel=document.createElement("i");
+  anel.className="anel";
+  anel.style.left=x+"px"; anel.style.top=y+"px";
+  this.appendChild(anel);
+  setTimeout(function(){ anel.remove(); },650);
+  var wrap=document.createElement("div");
+  wrap.className="splat";
+  wrap.style.left=x+"px"; wrap.style.top=y+"px";
+  var rot=Math.random()*360;
+  var svg=['<svg width="64" height="64" viewBox="-32 -32 64 64" style="transform:rotate('+rot+'deg)">'];
+  var pts=[],n=10,i;
+  for(i=0;i<n;i++){
+    var a=i/n*Math.PI*2, rr=9+Math.random()*6;
+    pts.push((Math.cos(a)*rr).toFixed(1)+" "+(Math.sin(a)*rr).toFixed(1));
+  }
+  svg.push('<path class="gota" d="M'+pts.join("L")+'Z" fill="#A81733" opacity=".92"/>');
+  for(i=0;i<4;i++){
+    var a2=Math.random()*Math.PI*2, d2=14+Math.random()*11, r2=1.5+Math.random()*2.5;
+    svg.push('<circle class="gota" style="animation-delay:'+(0.06*i)+'s" cx="'+(Math.cos(a2)*d2).toFixed(1)+'" cy="'+(Math.sin(a2)*d2).toFixed(1)+'" r="'+r2.toFixed(1)+'" fill="#8E1029"/>');
+  }
+  svg.push('</svg>');
+  wrap.innerHTML=svg.join("");
+  this.appendChild(wrap);
+  tocar("carimbo");
+  vibrar(12);
+});
+
+/* ==========================================================
+   02 TOQUE — segurar para selar
+   ========================================================== */
+(function(){
+  var alvo=$("press-alvo"), ring=$("press-ring"), hint=$("press-hint");
+  var CIRC=289, DURACAO=950;
+  var inicio=null, raf=null, marcos=[false,false];
+  alvo.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+  function passo(agora){
+    var p=Math.min(1,(agora-inicio)/DURACAO);
+    ring.style.strokeDashoffset=CIRC*(1-p);
+    if(p>.33 && !marcos[0]){ marcos[0]=true; vibrar(8); }
+    if(p>.66 && !marcos[1]){ marcos[1]=true; vibrar(8); }
+    if(p>=1){ selar(); return; }
+    raf=requestAnimationFrame(passo);
+  }
+  function selar(){
+    raf=null;
+    alvo.classList.add("selado");
+    tocar("carimbo");
+    vibrar([12,40,18]);
+    hint.textContent="selada!";
+    setTimeout(function(){
+      alvo.classList.remove("selado");
+      ring.classList.add("solto");
+      ring.style.strokeDashoffset=CIRC;
+      hint.textContent="pressione e segure o círculo";
+      setTimeout(function(){ ring.classList.remove("solto"); },450);
+    },2000);
+  }
+  function soltar(){
+    if(!raf) return;
+    cancelAnimationFrame(raf); raf=null;
+    ring.classList.add("solto");
+    ring.style.strokeDashoffset=CIRC;
+    setTimeout(function(){ ring.classList.remove("solto"); },450);
+  }
+  alvo.addEventListener("pointerdown", function(e){
+    if(alvo.classList.contains("selado")) return;
+    e.preventDefault();
+    alvo.setPointerCapture(e.pointerId);
+    ring.classList.remove("solto");
+    inicio=performance.now(); marcos=[false,false];
+    raf=requestAnimationFrame(passo);
+  });
+  alvo.addEventListener("pointerup", soltar);
+  alvo.addEventListener("pointercancel", soltar);
+})();
+
+/* ==========================================================
+   03 GESTOS — baralho de tarefas
+   ========================================================== */
+(function(){
+  var deck=$("deck");
+  var cartas=[
+    {n:"Tarefa · 1",nome:"A BÚSSOLA",txt:"participe das reuniões por 90 dias"},
+    {n:"Tarefa · 2",nome:"O CICLO",txt:"atinja 60% de frequência"},
+    {n:"Tarefa · 3",nome:"O TREINO",txt:"participe de 1 treinamento"},
+    {n:"Tarefa · 4",nome:"A OBRA",txt:"participe de 1 projeto"}
+  ];
+  var els=cartas.map(function(c,i){
+    var d=document.createElement("div");
+    d.className="scard";
+    d.innerHTML='<span class="num">'+c.n+'</span><span class="selocirc">'+(i+1)+'</span><b>'+c.nome+'</b><p>'+c.txt+'</p>';
+    deck.appendChild(d);
+    return d;
+  });
+  var ordem=els.slice();
+  function arruma(){
+    ordem.forEach(function(el,i){
+      el.style.zIndex=ordem.length-i;
+      if(i===0){ el.style.transform=""; el.style.opacity=1; }
+      else if(i<3){ el.style.transform="translateY("+(i*14)+"px) scale("+(1-i*.06)+")"; el.style.opacity=1-i*.18; }
+      else { el.style.transform="translateY(28px) scale(.88)"; el.style.opacity=0; }
+    });
+  }
+  arruma();
+  var drag=null;
+  deck.addEventListener("pointerdown", function(e){
+    var topo=ordem[0];
+    if(e.target!==topo && !topo.contains(e.target)) return;
+    topo.setPointerCapture(e.pointerId);
+    topo.classList.add("pega");
+    drag={id:e.pointerId, x0:e.clientX, y0:e.clientY, el:topo};
+  });
+  deck.addEventListener("pointermove", function(e){
+    if(!drag || e.pointerId!==drag.id) return;
+    var dx=e.clientX-drag.x0, dy=e.clientY-drag.y0;
+    drag.el.style.transform="translate("+dx+"px,"+(dy*.25)+"px) rotate("+(dx*.07)+"deg)";
+  });
+  deck.addEventListener("pointerup", function(e){
+    if(!drag || e.pointerId!==drag.id) return;
+    var dx=e.clientX-drag.x0, el=drag.el;
+    el.classList.remove("pega");
+    drag=null;
+    if(Math.abs(dx)>80){
+      var lado=dx>0?1:-1;
+      el.style.transform="translate("+(lado*150)+"%,"+(-20)+"px) rotate("+(lado*24)+"deg)";
+      el.style.opacity=0;
+      tocar("papel");
+      vibrar(8);
+      setTimeout(function(){
+        ordem.push(ordem.shift());
+        arruma();
+      },420);
+    } else {
+      arruma();
+    }
+  });
+  deck.addEventListener("pointercancel", function(){
+    if(!drag) return;
+    drag.el.classList.remove("pega");
+    drag=null; arruma();
+  });
+})();
+
+/* ==========================================================
+   03 GESTOS — zoom de pinça no mapa
+   ========================================================== */
+(function(){
+  var demo=$("demo-pinch"), mundo=$("pinch-mundo");
+  var view={x:0,y:0,s:1};
+  var pts=new Map(), base=null;
+  function aplica(){
+    var r=demo.getBoundingClientRect();
+    var W=r.width, H=r.height;
+    view.s=Math.max(1,Math.min(3.5,view.s));
+    view.x=Math.max(W-W*view.s,Math.min(0,view.x));
+    view.y=Math.max(H-H*view.s,Math.min(0,view.y));
+    mundo.style.transform="translate("+view.x+"px,"+view.y+"px) scale("+view.s+")";
+  }
+  function midDist(){
+    var arr=Array.from(pts.values());
+    if(arr.length<2) return null;
+    return {
+      mx:(arr[0].x+arr[1].x)/2, my:(arr[0].y+arr[1].y)/2,
+      d:Math.hypot(arr[0].x-arr[1].x, arr[0].y-arr[1].y)
+    };
+  }
+  function reiniciaBase(){
+    var arr=Array.from(pts.values());
+    if(arr.length>=2){
+      var m=midDist();
+      base={modo:2, s:view.s, x:view.x, y:view.y, mx:m.mx, my:m.my, d:m.d};
+    } else if(arr.length===1){
+      base={modo:1, x:view.x, y:view.y, px:arr[0].x, py:arr[0].y};
+    } else base=null;
+  }
+  demo.addEventListener("pointerdown", function(e){
+    demo.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    reiniciaBase();
+  });
+  demo.addEventListener("pointermove", function(e){
+    if(!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(!base) return;
+    if(base.modo===2 && pts.size>=2){
+      var m=midDist();
+      var r=demo.getBoundingClientRect();
+      var ns=base.s*(m.d/base.d);
+      ns=Math.max(1,Math.min(3.5,ns));
+      // ponto do mundo sob o centro da pinça permanece sob ele
+      var wx=((base.mx-r.left)-base.x)/base.s;
+      var wy=((base.my-r.top)-base.y)/base.s;
+      view.s=ns;
+      view.x=(m.mx-r.left)-wx*ns;
+      view.y=(m.my-r.top)-wy*ns;
+      aplica();
+    } else if(base.modo===1){
+      var p=pts.get(e.pointerId);
+      view.x=base.x+(p.x-base.px);
+      view.y=base.y+(p.y-base.py);
+      aplica();
+    }
+  });
+  function solta(e){
+    pts.delete(e.pointerId);
+    reiniciaBase();
+  }
+  demo.addEventListener("pointerup", solta);
+  demo.addEventListener("pointercancel", solta);
+})();
+
+/* ==========================================================
+   04 GIROSCÓPIO
+   ========================================================== */
+var giroAtivo=false, giroRecebeu=false;
+function aoOrientar(e){
+  if(e.gamma===null && e.beta===null) return;
+  if(!giroRecebeu){
+    giroRecebeu=true;
+    $("giro-status").innerHTML="<b>Sensores ativos ✓</b> — incline o aparelho e veja os demos abaixo.";
+  }
+  var g=Math.max(-30,Math.min(30,e.gamma||0));     // esquerda/direita
+  var b=Math.max(10,Math.min(80,e.beta==null?45:e.beta)); // frente/trás (45° = segurando normal)
+  var mx=50+g*1.6, my=50+(b-45)*1.6;
+  var luz=$("demo-giroluz");
+  luz.style.setProperty("--mx",mx+"%");
+  luz.style.setProperty("--my",my+"%");
+  var card=$("tilt-card");
+  card.style.transform="rotateY("+(g*.7)+"deg) rotateX("+((b-45)*-.5)+"deg)";
+  $("tilt-brilho").style.setProperty("--gx",mx+"%");
+  $("tilt-brilho").style.setProperty("--gy",my+"%");
+}
+$("btn-giro").addEventListener("click", function(){
+  if(giroAtivo){ toast("Sensores já ativados"); return; }
+  if(!window.isSecureContext){
+    toast("Sensores exigem HTTPS — abra o link publicado");
+    return;
+  }
+  function liga(){
+    giroAtivo=true;
+    window.addEventListener("deviceorientation", aoOrientar);
+    window.addEventListener("devicemotion", aoMover);
+    $("giro-status").textContent="Aguardando dados dos sensores… incline o aparelho.";
+    setTimeout(function(){
+      if(!giroRecebeu) $("giro-status").textContent="Nenhum dado recebido — este aparelho parece não ter giroscópio (desktop?). Os demos seguem respondendo ao mouse/toque.";
+    },2500);
+  }
+  var pedidos=[];
+  if(window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission)
+    pedidos.push(DeviceOrientationEvent.requestPermission());
+  if(window.DeviceMotionEvent && DeviceMotionEvent.requestPermission)
+    pedidos.push(DeviceMotionEvent.requestPermission());
+  if(pedidos.length){
+    Promise.all(pedidos).then(function(res){
+      if(res.every(function(r){ return r==="granted"; })) liga();
+      else toast("Permissão negada pelo sistema");
+    }).catch(function(){ toast("Não foi possível pedir permissão"); });
+  } else liga();
+});
+/* fallback desktop: mouse nos demos de giro */
+$("demo-giroluz").addEventListener("pointermove", function(e){
+  if(giroRecebeu) return;
+  var r=this.getBoundingClientRect();
+  this.style.setProperty("--mx",((e.clientX-r.left)/r.width*100)+"%");
+  this.style.setProperty("--my",((e.clientY-r.top)/r.height*100)+"%");
+});
+$("demo-girotilt").addEventListener("pointermove", function(e){
+  if(giroRecebeu) return;
+  var r=this.getBoundingClientRect();
+  var nx=(e.clientX-r.left)/r.width-.5, ny=(e.clientY-r.top)/r.height-.5;
+  $("tilt-card").style.transform="rotateY("+(nx*22)+"deg) rotateX("+(ny*-22)+"deg)";
+  $("tilt-brilho").style.setProperty("--gx",((nx+.5)*100)+"%");
+  $("tilt-brilho").style.setProperty("--gy",((ny+.5)*100)+"%");
+});
+$("demo-girotilt").addEventListener("pointerleave", function(){
+  if(!giroRecebeu) $("tilt-card").style.transform="";
+});
+
+/* ==========================================================
+   05 CHACOALHAR — abre o baú
+   ========================================================== */
+var ultMag=null, ultShake=0;
+function aoMover(e){
+  var a=e.accelerationIncludingGravity;
+  if(!a || a.x==null) return;
+  var mag=Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z);
+  if(ultMag!==null && Math.abs(mag-ultMag)>24){
+    var agora=Date.now();
+    if(agora-ultShake>1200){ ultShake=agora; abrirBau(); }
+  }
+  ultMag=mag;
+}
+function abrirBau(){
+  var demo=$("demo-bau");
+  if(demo.classList.contains("aberto")) return;
+  demo.classList.add("tremendo");
+  vibrar([15,60,20]);
+  setTimeout(function(){
+    demo.classList.remove("tremendo");
+    demo.classList.add("aberto");
+    tocar("bau");
+    setTimeout(function(){ tocar("moedas"); },350);
+    chuvaDeMoedas();
+    $("bau-hint").firstChild.textContent="o tesouro é seu!";
+    setTimeout(function(){
+      demo.classList.remove("aberto");
+      $("bau-hint").firstChild.textContent="chacoalhe o celular";
+    },3000);
+  },480);
+}
+function chuvaDeMoedas(){
+  if(reduz) return;
+  var palco=$("bau-palco"), demo=$("demo-bau");
+  var pr=palco.getBoundingClientRect(), dr=demo.getBoundingClientRect();
+  var cx=pr.left-dr.left+pr.width/2, cy=pr.top-dr.top+pr.height*.45;
+  var moedas=[];
+  for(var i=0;i<16;i++){
+    var m=document.createElement("i");
+    m.className="moeda";
+    var s=7+Math.random()*8;
+    m.style.width=s+"px"; m.style.height=s+"px";
+    m.style.left=cx+"px"; m.style.top=cy+"px";
+    demo.appendChild(m);
+    moedas.push({el:m,x:cx,y:cy,vx:(Math.random()-.5)*7,vy:-(5+Math.random()*5),vida:1});
+  }
+  (function tick(){
+    var vivas=false;
+    moedas.forEach(function(p){
+      if(p.vida<=0) return;
+      vivas=true;
+      p.vy+=.32; p.x+=p.vx; p.y+=p.vy; p.vida-=.014;
+      p.el.style.left=p.x+"px"; p.el.style.top=p.y+"px";
+      p.el.style.opacity=Math.max(0,p.vida);
+      if(p.vida<=0) p.el.remove();
+    });
+    if(vivas) requestAnimationFrame(tick);
+  })();
+}
+$("btn-fake-shake").addEventListener("click", abrirBau);
+
+/* ==========================================================
+   07 SISTEMA
+   ========================================================== */
+$("btn-share").addEventListener("click", function(){
+  if(navigator.share){
+    navigator.share({
+      title:"Caça ao Primeiro Pin",
+      text:"Sua trilha até o primeiro pin do Rotaract. Sete selos para conquistar.",
+      url:location.href
+    }).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(location.href);
+    toast("Link copiado — compartilhar nativo indisponível aqui");
+  } else toast("Compartilhar não suportado neste navegador");
+});
+$("btn-full").addEventListener("click", function(){
+  var d=document.documentElement;
+  if(document.fullscreenElement){ document.exitFullscreen(); return; }
+  var fn=d.requestFullscreen||d.webkitRequestFullscreen;
+  if(fn) fn.call(d);
+  else toast("Tela cheia não suportada (iPhone não permite)");
+});
+var wake=null;
+$("btn-wake").addEventListener("click", function(){
+  var btn=this;
+  if(wake){ wake.release(); wake=null; btn.textContent="Ativar"; toast("Tela pode apagar normalmente"); return; }
+  if(!("wakeLock" in navigator)){ toast("Wake Lock não suportado neste navegador"); return; }
+  navigator.wakeLock.request("screen").then(function(w){
+    wake=w; btn.textContent="Desativar";
+    toast("A tela não vai apagar enquanto a página estiver aberta");
+    w.addEventListener("release", function(){ wake=null; btn.textContent="Ativar"; });
+  }).catch(function(){ toast("O sistema negou o Wake Lock"); });
+});
+
+/* ==========================================================
+   REVEALS
+   ========================================================== */
+var obs=new IntersectionObserver(function(es){
+  es.forEach(function(en){
+    if(en.isIntersecting){ en.target.classList.add("in"); obs.unobserve(en.target); }
+  });
+},{threshold:.2});
+document.querySelectorAll(".reveal").forEach(function(n){ obs.observe(n); });
+})();
+</script>
+</body>
+</html>

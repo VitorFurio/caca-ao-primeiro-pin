@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0A09">
+<title>Laboratório de Bibliotecas — Caça ao Primeiro Pin</title>
+<style>
+/* ============================================================
+   TOKENS (mesmos do projeto)
+   ============================================================ */
+:root{
+  --void:#0B0A09;
+  --void-2:#141110;
+  --ink:#241C15;
+  --ink-soft:#5A4535;
+  --parch-1:#EFDDB8;
+  --parch-2:#DCC79A;
+  --parch-3:#B99A66;
+  --wax:#A81733;
+  --wax-lit:#C93450;
+  --rotaract:#D4145A;
+  --gold:#C8A035;
+  --gold-lit:#EFCE79;
+  --display:'Didot','Bodoni MT','Playfair Display',Georgia,serif;
+  --hand:'Segoe Script','Bradley Hand','Snell Roundhand',cursive;
+  --body:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+  --util:'Futura','Avenir Next','Century Gothic',sans-serif;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ease-back:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--void);color:var(--parch-1);font-family:var(--body);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--gold-lit);outline-offset:3px}
+
+.wrap{max-width:680px;margin:0 auto;padding:0 clamp(18px,5vw,32px)}
+section.lab{padding:clamp(56px,9vh,96px) 0;border-bottom:1px solid rgba(239,221,184,.08)}
+.lab-tag{font-family:var(--util);font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.lab h2{font-family:var(--display);font-weight:400;font-size:clamp(25px,6.4vw,38px);letter-spacing:.03em;line-height:1.25;margin-bottom:12px;text-wrap:balance}
+.lab .lead{color:var(--parch-3);line-height:1.75;margin-bottom:26px;font-size:clamp(14.5px,3.8vw,16.5px)}
+.lab .lead b{color:var(--parch-1);font-weight:600}
+.tech{font-family:var(--util);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#6E5A44;margin-top:14px;line-height:2}
+.demo{
+  position:relative;border:1px solid rgba(239,221,184,.14);border-radius:3px;
+  background:var(--void-2);min-height:300px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px;
+}
+.demo-label{
+  position:absolute;left:14px;top:12px;z-index:8;
+  font-family:var(--util);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--parch-3);opacity:.8;pointer-events:none;
+}
+.btn-lab{
+  font-family:var(--util);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--void);background:var(--parch-1);min-height:48px;padding:14px 24px 13px;border-radius:1px;
+  transition:transform .35s var(--ease-back),background .3s;
+}
+.btn-lab:active{transform:scale(.96);background:var(--gold-lit)}
+.btn-ghost{
+  font-family:var(--util);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--parch-3);min-height:44px;padding:12px 18px;
+  border:1px solid rgba(239,221,184,.25);border-radius:1px;
+  transition:color .3s,border-color .3s;
+}
+.btn-ghost:active{color:var(--gold-lit);border-color:var(--gold)}
+.lib-falta{
+  font-family:var(--util);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--wax-lit);text-align:center;line-height:2;padding:24px;
+}
+
+/* HERO */
+#hero{min-height:82svh;display:flex;align-items:center;padding:calc(30px + env(safe-area-inset-top)) 0 40px;border-bottom:1px solid rgba(239,221,184,.08)}
+#hero .kicker{font-family:var(--util);font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
+#hero h1{font-family:var(--display);font-weight:400;font-size:clamp(32px,9vw,54px);line-height:1.14;margin-bottom:20px;text-wrap:balance}
+#hero h1 em{font-style:normal;
+  background:linear-gradient(100deg,var(--gold) 20%,var(--gold-lit) 45%,#fff8e0 50%,var(--gold-lit) 55%,var(--gold) 80%);
+  background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4.5s linear infinite;
+}
+@keyframes shimmer{to{background-position:-200% 0}}
+#hero p{color:var(--parch-3);line-height:1.8;max-width:54ch}
+
+/* GSAP SCROLLTRIGGER */
+#st-wrap{position:relative}
+.st-palco-out{height:100svh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.st-palco{
+  position:relative;width:min(92vw,640px);aspect-ratio:10/8;max-height:78svh;
+  background:linear-gradient(150deg,var(--parch-1),var(--parch-2) 55%,var(--parch-3));
+  border-radius:3px;box-shadow:0 40px 80px -30px #000;
+}
+.st-palco svg{position:absolute;inset:0;width:100%;height:100%}
+.st-caminho{fill:none;stroke:var(--wax);stroke-width:.6;stroke-linecap:round;stroke-dasharray:.05 .11}
+.st-marco circle{fill:none;stroke:#A81733;stroke-width:3}
+.st-marco text{font-family:Georgia,serif;font-size:17px;fill:#241C15;text-anchor:middle}
+.st-x path{stroke:#A81733;stroke-width:6;stroke-linecap:round;fill:none}
+.st-hint{
+  position:absolute;left:50%;bottom:5%;transform:translateX(-50%);
+  font-family:var(--util);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink);opacity:.6;white-space:nowrap;
+}
+
+/* GSAP DRAGGABLE */
+.flick-demo{background:linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));min-height:360px}
+#alvo-flick{
+  position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);
+  width:120px;height:120px;border:2px dashed rgba(168,23,51,.5);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:var(--util);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);
+  transition:box-shadow .3s,border-color .3s;
+}
+#alvo-flick.perto{border-color:var(--gold);box-shadow:0 0 30px -4px var(--gold)}
+#lacre-flick{
+  position:absolute;left:50%;bottom:34px;margin-left:-37px;
+  width:74px;height:74px;touch-action:none;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.55));
+}
+#lacre-flick svg{width:100%;height:100%;pointer-events:none}
+
+/* MATTER */
+.fisica-demo{background:radial-gradient(ellipse at 50% 110%,#241608,var(--void-2) 70%);min-height:400px;flex-direction:column}
+#fisica-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:manipulation}
+.fisica-controles{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:8;display:flex;gap:10px}
+
+/* CONFETTI */
+.conf-demo{background:radial-gradient(ellipse at 50% 40%,#1B1509 0%,var(--void-2) 68%);min-height:380px;flex-direction:column;gap:20px}
+#conf-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.conf-pin{width:110px;filter:drop-shadow(0 0 24px rgba(200,160,53,.5))}
+
+/* THREE */
+.tres-demo{background:radial-gradient(ellipse at 50% 30%,#191307,var(--void-2) 75%);min-height:420px}
+#tres-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.tres-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  font-family:var(--util);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--parch-3);opacity:.7;pointer-events:none;white-space:nowrap}
+
+/* TABELA */
+.resumo{padding:clamp(56px,9vh,96px) 0 130px}
+.tabela-scroll{overflow-x:auto;margin-top:8px}
+.resumo table{width:100%;min-width:560px;border-collapse:collapse;font-size:13.5px}
+.resumo th{text-align:left;font-family:var(--util);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);padding:11px 12px;border-bottom:1px solid rgba(239,221,184,.2);white-space:nowrap}
+.resumo td{padding:12px;border-bottom:1px solid rgba(239,221,184,.08);color:var(--parch-2);line-height:1.6;vertical-align:top}
+.resumo td:first-child{font-family:var(--display);letter-spacing:.03em;white-space:nowrap}
+.estrela{color:var(--gold-lit)}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lacre" viewBox="-60 -60 120 120">
+    <path id="lacre-serrilha" fill="#A81733"/>
+    <circle r="40" fill="#8E1029"/>
+    <circle r="36" fill="none" stroke="#C93450" stroke-width="1.5" opacity=".8"/>
+    <g fill="none" stroke="#E9A6B2" stroke-width="2.6" stroke-linecap="round">
+      <circle r="20"/><path d="M0 -14V6"/><path d="M-6 -8 0 -14 6 -8"/>
+    </g>
+  </symbol>
+</svg>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <div class="wrap">
+    <div class="kicker">Laboratório de bibliotecas · Caça ao Primeiro Pin</div>
+    <h1>E se a gente<br><em>chamar reforços?</em></h1>
+    <p>Até agora, tudo foi HTML, CSS e JavaScript puro. Este laboratório testa o que as
+       melhores bibliotecas do mercado acrescentam: física de verdade, rolagem cinematográfica,
+       arremesso com inércia, 3D real e celebração. Todas gratuitas e de código aberto —
+       o GSAP, inclusive, ficou 100% grátis (com todos os plugins) desde que o Webflow passou a patrociná-lo.</p>
+  </div>
+</section>
+
+<!-- ============ 01 GSAP SCROLLTRIGGER ============ -->
+<section class="lab" id="s-st" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 01 · GSAP + ScrollTrigger</div>
+    <h2 class="reveal">Rolagem de cinema</h2>
+    <p class="lead reveal">Nós já fizemos trilha-por-rolagem na mão — o <b>ScrollTrigger</b> faz a mesma coisa
+       com metade do código e o dobro da suavidade: a tela "prende" (pin), a animação é <b>esfregada</b>
+       pelo dedo (scrub) com amortecimento, e os selos pulam com easing elástico impossível de escrever à mão.
+       Role e sinta a diferença.</p>
+  </div>
+  <div id="st-wrap">
+    <div class="st-palco-out">
+      <div class="st-palco">
+        <svg viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet">
+          <rect x="18" y="18" width="964" height="764" rx="4" fill="none" stroke="#241C15" stroke-width="2" opacity=".5"/>
+          <path class="st-caminho" id="st-caminho" pathLength="1"
+            d="M110 690 C 240 600, 170 440, 330 390 S 560 470, 650 350 S 700 170, 860 150"/>
+          <g class="st-marco" id="st-m1" transform="translate(110,690)"><circle r="30"/><text y="6">1</text></g>
+          <g class="st-marco" id="st-m2" transform="translate(330,390)"><circle r="30"/><text y="6">2</text></g>
+          <g class="st-marco" id="st-m3" transform="translate(650,350)"><circle r="30"/><text y="6">3</text></g>
+          <g class="st-x" id="st-x" transform="translate(860,150)"><path d="M-18 -18 18 18M18 -18 -18 18"/></g>
+        </svg>
+        <div class="st-hint" id="st-hint">role — o ScrollTrigger esfrega a animação</div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap"><div class="tech" style="margin:14px 0 40px">gsap.min.js 73 KB + ScrollTrigger 45 KB · grátis (licença padrão GreenSock) · scrub, pin, snap, stagger, easings elásticos</div></div>
+</section>
+
+<!-- ============ 02 GSAP DRAGGABLE ============ -->
+<section class="lab" id="s-flick">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 02 · GSAP Draggable + Inertia</div>
+    <h2 class="reveal">Arremesse o lacre</h2>
+    <p class="lead reveal">Nosso arrasto manual funciona — mas não tem <b>física de arremesso</b>.
+       Com o plugin de inércia, você pode <b>jogar</b> o lacre com o dedo: ele desliza, desacelera
+       como um objeto de verdade e, se parar perto do alvo, é sugado para o centro com um
+       encaixe elástico. Experimente arremessar em vez de arrastar.</p>
+    <div class="demo flick-demo reveal" id="demo-flick">
+      <span class="demo-label" style="color:var(--ink)">Arraste ou arremesse até o círculo</span>
+      <div id="alvo-flick">solte o lacre<br>aqui</div>
+      <div id="lacre-flick"><svg viewBox="-60 -60 120 120"><use href="#lacre"/></svg></div>
+    </div>
+    <div class="tech reveal">Draggable 36 KB + InertiaPlugin 7 KB · rastreia a velocidade do dedo e continua o movimento com atrito natural</div>
+  </div>
+</section>
+
+<!-- ============ 03 MATTER.JS ============ -->
+<section class="lab" id="s-fisica">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 03 · Matter.js</div>
+    <h2 class="reveal">Moedas que obedecem à gravidade</h2>
+    <p class="lead reveal">Um motor de física 2D completo: massa, atrito, quique, colisão.
+       <b>Toque para despejar moedas</b> — elas caem, colidem e se empilham de verdade.
+       E o truque de mestre no celular: ative a inclinação e <b>o telefone vira a caixa</b> —
+       incline o aparelho e o ouro rola para o lado. Perfeito para o interior do baú no final da caça.</p>
+    <div class="demo fisica-demo reveal" id="demo-fisica">
+      <span class="demo-label">Toque para despejar moedas</span>
+      <canvas id="fisica-canvas"></canvas>
+      <div class="fisica-controles">
+        <button class="btn-ghost" id="btn-tilt-fisica">Gravidade por inclinação</button>
+        <button class="btn-ghost" id="btn-limpa-fisica">Esvaziar</button>
+      </div>
+    </div>
+    <div class="tech reveal">matter.min.js 83 KB · licença MIT · corpos rígidos, restituição, constraints · gravidade ligada ao giroscópio</div>
+  </div>
+</section>
+
+<!-- ============ 04 CANVAS-CONFETTI ============ -->
+<section class="lab" id="s-conf">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 04 · canvas-confetti</div>
+    <h2 class="reveal">A celebração em 11 KB</h2>
+    <p class="lead reveal">A biblioteca mais famosa de confete do mundo — minúscula, roda em
+       um worker (não trava a rolagem) e aceita cores, formas e física customizadas.
+       Aqui, calibrada para a caça: <b>ouro e cera</b> em três ondas, com estrelas no clímax.
+       É o fecho perfeito para a conquista do pin.</p>
+    <div class="demo conf-demo reveal" id="demo-conf">
+      <span class="demo-label">O momento da conquista</span>
+      <canvas id="conf-canvas"></canvas>
+      <svg class="conf-pin" viewBox="-50 -50 100 100" aria-hidden="true">
+        <g fill="none" stroke="#C8A035" stroke-width="2.4">
+          <circle r="34"/><circle r="27"/><circle r="9"/><circle r="4.5"/>
+          <g id="conf-raios"></g>
+        </g>
+      </svg>
+      <button class="btn-lab" id="btn-conf">Conquistar o pin</button>
+    </div>
+    <div class="tech reveal">confetti.browser.min.js 11 KB · licença ISC · cores/formas customizadas, worker thread, zero dependências</div>
+  </div>
+</section>
+
+<!-- ============ 05 THREE.JS ============ -->
+<section class="lab" id="s-tres">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 05 · Three.js</div>
+    <h2 class="reveal">O pin em três dimensões</h2>
+    <p class="lead reveal">WebGL de verdade: a roda do pin como <b>objeto 3D metálico</b>, com luz
+       dourada e reflexo magenta do Rotaract. <b>Arraste para girar</b> — no celular, com o dedo.
+       É a diferença entre mostrar um desenho do prêmio e deixar o convidado <b>segurar o prêmio</b>.
+       Pesada (614 KB), mas para um único momento-troféu pode valer cada byte.</p>
+    <div class="demo tres-demo reveal" id="demo-tres">
+      <span class="demo-label">Arraste para girar o pin</span>
+      <canvas id="tres-canvas"></canvas>
+      <span class="tres-hint">arraste · o giro continua com a inércia</span>
+    </div>
+    <div class="tech reveal">three.min.js 614 KB · licença MIT · materiais PBR (metalness/roughness), luzes, sombras, shaders</div>
+  </div>
+</section>
+
+<!-- ============ RESUMO ============ -->
+<section class="resumo">
+  <div class="wrap">
+    <div class="lab-tag reveal">Veredito</div>
+    <h2 class="reveal" style="font-family:var(--display);font-weight:400;font-size:clamp(25px,6.4vw,38px);margin-bottom:12px">O que vale adotar na caça</h2>
+    <div class="tabela-scroll reveal">
+      <table>
+        <tr><th>Biblioteca</th><th>Tamanho</th><th>O que traria para a caça</th><th>Veredito</th></tr>
+        <tr><td>GSAP + ScrollTrigger</td><td>118 KB</td><td>Todas as animações do app com metade do código: prólogo com pin/scrub, easings elásticos, timelines orquestradas.</td><td><span class="estrela">★ adotar</span> — vira a fundação</td></tr>
+        <tr><td>canvas-confetti</td><td>11 KB</td><td>A celebração da carta gerada, em ouro e cera.</td><td><span class="estrela">★ adotar</span> — custo quase zero</td></tr>
+        <tr><td>Draggable + Inertia</td><td>43 KB</td><td>Arremesso do lacre com física. Delicioso, mas o "segurar para selar" já cumpre o ritual.</td><td>opcional</td></tr>
+        <tr><td>Matter.js</td><td>83 KB</td><td>O interior do baú final: moedas que rolam com a inclinação do celular. Um único momento-uau.</td><td>set piece do final</td></tr>
+        <tr><td>Three.js</td><td>614 KB</td><td>O pin 3D que o convidado gira com o dedo na tela final.</td><td>só se o final merecer o peso</td></tr>
+        <tr><td>Lottie / Rive</td><td>~150–250 KB</td><td>Animações vetoriais feitas por designer (After Effects / editor Rive). Exigem criar os arquivos de animação.</td><td>se houver designer</td></tr>
+        <tr><td>Lenis</td><td>~8 KB</td><td>Rolagem com manteiga no prólogo (momentum suave).</td><td>refinamento tardio</td></tr>
+        <tr><td>anime.js v4 / Motion</td><td>~9–8 KB</td><td>Alternativas leves ao GSAP; Motion brilha em React — que não usamos.</td><td>redundante com GSAP</td></tr>
+      </table>
+    </div>
+    <p class="lead reveal" style="margin-top:30px">Minha recomendação: <b>GSAP + ScrollTrigger como fundação</b> do app
+      (reescrevo o prólogo e as transições com ele), <b>canvas-confetti na carta</b>, e — se quisermos um final
+      inesquecível — <b>Matter.js dentro do baú</b>: o convidado inclina o celular e o ouro rola até revelar o pin.
+      Three.js fica no bolso para uma versão 2.0.</p>
+  </div>
+</section>
+
+<!-- bibliotecas via CDN (a versão publicada em HTTPS usa cópias embutidas) -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/Draggable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/InertiaPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+
+<script>
+(function(){
+"use strict";
+function $(id){ return document.getElementById(id); }
+var reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* serrilha do lacre */
+(function(){
+  var pts=[],i,a,r;
+  for(i=0;i<48;i++){
+    a=i/48*Math.PI*2; r=(i%2?44:50);
+    pts.push((Math.cos(a)*r).toFixed(1)+" "+(Math.sin(a)*r).toFixed(1));
+  }
+  $("lacre-serrilha").setAttribute("d","M"+pts.join("L")+"Z");
+})();
+/* raios do pin do confetti */
+(function(){
+  var g=$("conf-raios"),i;
+  for(i=0;i<6;i++){
+    var r=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x","-3"); r.setAttribute("y","-27");
+    r.setAttribute("width","6"); r.setAttribute("height","18");
+    r.setAttribute("transform","rotate("+(i*60)+")");
+    r.setAttribute("fill","#C8A035"); r.setAttribute("stroke","none");
+    g.appendChild(r);
+  }
+})();
+
+function libFalta(boxId,nome){
+  var box=$(boxId);
+  var d=document.createElement("div");
+  d.className="lib-falta";
+  d.textContent="⚠ "+nome+" não carregou — verifique a conexão com a internet";
+  box.appendChild(d);
+}
+
+/* reveals básicos */
+var obs=new IntersectionObserver(function(es){
+  es.forEach(function(en){
+    if(en.isIntersecting){ en.target.classList.add("in"); obs.unobserve(en.target); }
+  });
+},{threshold:.2});
+document.querySelectorAll(".reveal").forEach(function(n){ obs.observe(n); });
+
+function vibrar(p){ if(navigator.vibrate) navigator.vibrate(p); }
+
+/* ==========================================================
+   01 GSAP + SCROLLTRIGGER
+   ========================================================== */
+if(window.gsap && window.ScrollTrigger){
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.set("#st-caminho",{strokeDasharray:1,strokeDashoffset:1});
+  gsap.set(["#st-m1","#st-m2","#st-m3","#st-x"],{scale:0,opacity:0,transformOrigin:"center",svgOrigin:null});
+
+  var tl=gsap.timeline({
+    scrollTrigger:{
+      trigger:"#st-wrap",
+      start:"top top",
+      end:"+=220%",
+      scrub:.6,
+      pin:true
+    }
+  });
+  tl.to("#st-caminho",{strokeDashoffset:0,ease:"none",duration:1},0)
+    .to("#st-m1",{scale:1,opacity:1,ease:"back.out(3)",duration:.06},.02)
+    .to("#st-m2",{scale:1,opacity:1,ease:"back.out(3)",duration:.06},.34)
+    .to("#st-m3",{scale:1,opacity:1,ease:"back.out(3)",duration:.06},.62)
+    .to("#st-x",{scale:1,opacity:1,ease:"elastic.out(1,.4)",duration:.14},.9)
+    .to("#st-hint",{opacity:0,duration:.05},.1);
+} else libFalta("s-st","GSAP/ScrollTrigger");
+
+/* ==========================================================
+   02 GSAP DRAGGABLE + INERTIA
+   ========================================================== */
+if(window.gsap && window.Draggable){
+  if(window.InertiaPlugin) gsap.registerPlugin(InertiaPlugin);
+  var lacre=$("lacre-flick"), alvo=$("alvo-flick"), boxFlick=$("demo-flick");
+  var ocupado=false;
+  function distAoAlvo(){
+    var a=alvo.getBoundingClientRect(), l=lacre.getBoundingClientRect();
+    var dx=(a.left+a.width/2)-(l.left+l.width/2);
+    var dy=(a.top+a.height/2)-(l.top+l.height/2);
+    return {dx:dx,dy:dy,d:Math.hypot(dx,dy)};
+  }
+  function checaEncaixe(drag){
+    var m=distAoAlvo();
+    alvo.classList.toggle("perto",m.d<70);
+    if(m.d<70 && !ocupado){
+      ocupado=true;
+      drag.disable();
+      gsap.timeline({onComplete:function(){
+        setTimeout(function(){
+          gsap.to(lacre,{x:0,y:0,scale:1,duration:.7,ease:"back.inOut(1.4)",
+            onComplete:function(){ ocupado=false; drag.enable(); alvo.classList.remove("perto"); }});
+        },1200);
+      }})
+      .to(lacre,{x:"+="+m.dx,y:"+="+m.dy,duration:.25,ease:"power2.out"})
+      .to(lacre,{scaleX:1.18,scaleY:.84,duration:.09},"<.18")
+      .to(lacre,{scale:1,duration:.4,ease:"elastic.out(1.2,.4)"});
+      vibrar([12,40,18]);
+    }
+  }
+  Draggable.create(lacre,{
+    type:"x,y",
+    bounds:boxFlick,
+    inertia:!!window.InertiaPlugin,
+    edgeResistance:.75,
+    onDrag:function(){ checaEncaixe(this); },
+    onThrowUpdate:function(){ checaEncaixe(this); },
+    onDragEnd:function(){ checaEncaixe(this); }
+  });
+} else libFalta("demo-flick","GSAP Draggable");
+
+/* ==========================================================
+   03 MATTER.JS — moedas com gravidade por inclinação
+   ========================================================== */
+if(window.Matter){
+  (function(){
+    var box=$("demo-fisica"), cv=$("fisica-canvas");
+    var ctx=cv.getContext("2d");
+    var dpr=Math.min(2,window.devicePixelRatio||1);
+    var W=0,H=0;
+    function medir(){
+      var r=box.getBoundingClientRect();
+      W=r.width; H=r.height;
+      cv.width=W*dpr; cv.height=H*dpr;
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    medir();
+
+    var Engine=Matter.Engine, Bodies=Matter.Bodies, Composite=Matter.Composite;
+    var engine=Engine.create();
+    engine.gravity.y=1;
+    var GROSSURA=60;
+    var paredes=[
+      Bodies.rectangle(W/2,H+GROSSURA/2,W*2,GROSSURA,{isStatic:true}),
+      Bodies.rectangle(-GROSSURA/2,H/2,GROSSURA,H*2,{isStatic:true}),
+      Bodies.rectangle(W+GROSSURA/2,H/2,GROSSURA,H*2,{isStatic:true}),
+      Bodies.rectangle(W/2,-GROSSURA*2,W*2,GROSSURA,{isStatic:true})
+    ];
+    Composite.add(engine.world,paredes);
+
+    var moedas=[];
+    function moeda(x,y){
+      var r=9+Math.random()*9;
+      var b=Bodies.circle(x,y,r,{restitution:.35,friction:.06,frictionAir:.001,density:.002});
+      b.raio=r;
+      moedas.push(b);
+      Composite.add(engine.world,b);
+      if(moedas.length>90){
+        var velho=moedas.shift();
+        Composite.remove(engine.world,velho);
+      }
+    }
+    for(var i=0;i<14;i++) moeda(W*.3+Math.random()*W*.4, -20-Math.random()*160);
+
+    cv.addEventListener("pointerdown",function(e){
+      var r=cv.getBoundingClientRect();
+      var x=e.clientX-r.left;
+      for(var i=0;i<3;i++) moeda(x+(Math.random()*30-15), 10+Math.random()*20);
+      vibrar(8);
+    });
+    $("btn-limpa-fisica").addEventListener("click",function(){
+      moedas.forEach(function(m){ Composite.remove(engine.world,m); });
+      moedas=[];
+    });
+    $("btn-tilt-fisica").addEventListener("click",function(){
+      var btn=this;
+      if(!window.isSecureContext){ btn.textContent="exige HTTPS — use o link publicado"; return; }
+      function liga(){
+        window.addEventListener("deviceorientation",function(e){
+          if(e.gamma===null) return;
+          var g=Math.max(-40,Math.min(40,e.gamma));
+          engine.gravity.x=g/40;
+          engine.gravity.y=Math.max(.2,Math.cos(g*Math.PI/180));
+        });
+        btn.textContent="incline o celular!";
+      }
+      if(window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission){
+        DeviceOrientationEvent.requestPermission().then(function(r){
+          if(r==="granted") liga(); else btn.textContent="permissão negada";
+        }).catch(function(){ btn.textContent="não disponível aqui"; });
+      } else liga();
+    });
+
+    (function loop(){
+      Engine.update(engine,1000/60);
+      ctx.clearRect(0,0,W,H);
+      moedas.forEach(function(b){
+        var p=b.position;
+        var grad=ctx.createRadialGradient(p.x-b.raio*.35,p.y-b.raio*.35,b.raio*.15,p.x,p.y,b.raio);
+        grad.addColorStop(0,"#FFF3C4");
+        grad.addColorStop(.5,"#EFCE79");
+        grad.addColorStop(1,"#C8A035");
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,b.raio,0,Math.PI*2);
+        ctx.fillStyle=grad;
+        ctx.fill();
+        ctx.lineWidth=1.2;
+        ctx.strokeStyle="rgba(90,60,10,.55)";
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,b.raio*.62,0,Math.PI*2);
+        ctx.strokeStyle="rgba(139,90,20,.4)";
+        ctx.stroke();
+      });
+      requestAnimationFrame(loop);
+    })();
+    window.addEventListener("resize",medir);
+  })();
+} else libFalta("demo-fisica","Matter.js");
+
+/* ==========================================================
+   04 CANVAS-CONFETTI
+   ========================================================== */
+if(window.confetti){
+  var confCanvas=$("conf-canvas");
+  var meuConfetti=confetti.create(confCanvas,{resize:true,useWorker:true});
+  var OURO=["#C8A035","#EFCE79","#FFF3C4","#A81733","#EFDDB8"];
+  $("btn-conf").addEventListener("click",function(){
+    vibrar([20,50,20,50,90]);
+    meuConfetti({particleCount:70,angle:60,spread:60,startVelocity:52,origin:{x:0,y:1},colors:OURO,scalar:1});
+    meuConfetti({particleCount:70,angle:120,spread:60,startVelocity:52,origin:{x:1,y:1},colors:OURO,scalar:1});
+    setTimeout(function(){
+      meuConfetti({particleCount:50,spread:100,startVelocity:34,origin:{x:.5,y:.45},
+        shapes:["star"],colors:["#EFCE79","#C8A035","#FFF3C4"],scalar:1.3});
+    },260);
+    setTimeout(function(){
+      meuConfetti({particleCount:40,spread:140,startVelocity:24,origin:{x:.5,y:.4},
+        colors:OURO,scalar:.8,gravity:.8,drift:.4});
+    },520);
+  });
+} else libFalta("demo-conf","canvas-confetti");
+
+/* ==========================================================
+   05 THREE.JS — o pin em 3D
+   ========================================================== */
+if(window.THREE){
+  (function(){
+    var box=$("demo-tres"), cv=$("tres-canvas");
+    var W=box.clientWidth, H=box.clientHeight;
+    var renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+    renderer.setSize(W,H,false);
+    var scene=new THREE.Scene();
+    var camera=new THREE.PerspectiveCamera(40,W/H,.1,100);
+    camera.position.set(0,0,7);
+
+    var ouro=new THREE.MeshStandardMaterial({color:0xC8A035,metalness:.92,roughness:.28});
+    var ouroClaro=new THREE.MeshStandardMaterial({color:0xEFCE79,metalness:.85,roughness:.2});
+
+    var pin=new THREE.Group();
+    var aro=new THREE.Mesh(new THREE.TorusGeometry(1.8,.24,24,72),ouro);
+    pin.add(aro);
+    var aroInt=new THREE.Mesh(new THREE.TorusGeometry(1.15,.13,20,60),ouro);
+    pin.add(aroInt);
+    for(var i=0;i<6;i++){
+      var raio=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,1.15,12),ouro);
+      var a=i/6*Math.PI*2;
+      raio.position.set(Math.cos(a)*.72,Math.sin(a)*.72,0);
+      raio.rotation.z=a+Math.PI/2;
+      pin.add(raio);
+    }
+    for(var j=0;j<24;j++){
+      var dente=new THREE.Mesh(new THREE.BoxGeometry(.16,.3,.34),ouro);
+      var a2=j/24*Math.PI*2;
+      dente.position.set(Math.cos(a2)*2.12,Math.sin(a2)*2.12,0);
+      dente.rotation.z=a2;
+      pin.add(dente);
+    }
+    var miolo=new THREE.Mesh(new THREE.SphereGeometry(.34,24,24),ouroClaro);
+    pin.add(miolo);
+    scene.add(pin);
+
+    scene.add(new THREE.AmbientLight(0x2a2013,2.2));
+    var luzQuente=new THREE.PointLight(0xEFCE79,60);
+    luzQuente.position.set(3,3,4);
+    scene.add(luzQuente);
+    var luzMagenta=new THREE.PointLight(0xD4145A,26);
+    luzMagenta.position.set(-4,-2,3);
+    scene.add(luzMagenta);
+
+    var velX=0, velY=.006, arrastando=null;
+    cv.addEventListener("pointerdown",function(e){
+      cv.setPointerCapture(e.pointerId);
+      arrastando={x:e.clientX,y:e.clientY};
+    });
+    cv.addEventListener("pointermove",function(e){
+      if(!arrastando) return;
+      velY=(e.clientX-arrastando.x)*.0022;
+      velX=(e.clientY-arrastando.y)*.0022;
+      pin.rotation.y+=velY;
+      pin.rotation.x+=velX;
+      arrastando={x:e.clientX,y:e.clientY};
+    });
+    function solta(){ arrastando=null; }
+    cv.addEventListener("pointerup",solta);
+    cv.addEventListener("pointercancel",solta);
+
+    (function anima(){
+      if(!arrastando){
+        pin.rotation.y+=velY;
+        pin.rotation.x+=velX;
+        velY+=( .006-velY)*.02;
+        velX+=(0-velX)*.03;
+      }
+      renderer.render(scene,camera);
+      requestAnimationFrame(anima);
+    })();
+    window.addEventListener("resize",function(){
+      W=box.clientWidth; H=box.clientHeight;
+      camera.aspect=W/H;
+      camera.updateProjectionMatrix();
+      renderer.setSize(W,H,false);
+    });
+  })();
+} else libFalta("demo-tres","Three.js");
+})();
+</script>
+</body>
+</html>

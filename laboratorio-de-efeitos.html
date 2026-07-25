@@ -1,0 +1,1162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laboratório de Efeitos — Caça ao Primeiro Pin</title>
+<style>
+/* ============================================================
+   TOKENS (mesmos do projeto)
+   ============================================================ */
+:root{
+  --void:#0B0A09;
+  --void-2:#141110;
+  --ink:#241C15;
+  --ink-soft:#5A4535;
+  --parch-1:#EFDDB8;
+  --parch-2:#DCC79A;
+  --parch-3:#B99A66;
+  --wax:#A81733;
+  --wax-lit:#C93450;
+  --rotaract:#D4145A;
+  --gold:#C8A035;
+  --gold-lit:#EFCE79;
+
+  --display:'Didot','Bodoni MT','Playfair Display',Georgia,serif;
+  --hand:'Segoe Script','Bradley Hand','Snell Roundhand',cursive;
+  --body:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+  --util:'Futura','Avenir Next','Century Gothic',sans-serif;
+
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ease-back:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--void);
+  color:var(--parch-1);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+  cursor:none; /* cursor do sistema some — o nosso assume */
+}
+a,button{cursor:none}
+button{font:inherit;color:inherit;background:none;border:none}
+
+/* ============================================================
+   CURSOR CUSTOMIZADO — bússola que vira alvo
+   ============================================================ */
+#cursor{
+  position:fixed;left:0;top:0;z-index:9999;pointer-events:none;
+  width:34px;height:34px;margin:-17px 0 0 -17px;
+  transition:transform .25s var(--ease);
+}
+#cursor svg{width:100%;height:100%;display:block;overflow:visible}
+#cursor .c-ring{fill:none;stroke:var(--parch-1);stroke-width:1.4;opacity:.9;
+  transition:stroke .3s,r .3s}
+#cursor .c-needle{fill:var(--wax-lit);transition:opacity .3s;transform-origin:center}
+#cursor .c-dot{fill:var(--gold-lit);opacity:0;transition:opacity .3s}
+body.is-hovering #cursor{transform:scale(1.7)}
+body.is-hovering #cursor .c-ring{stroke:var(--gold-lit)}
+body.is-hovering #cursor .c-needle{opacity:0}
+body.is-hovering #cursor .c-dot{opacity:1}
+body.is-pressing #cursor{transform:scale(.8)}
+@media (hover:none){ body{cursor:auto} #cursor{display:none} }
+
+/* trilha de tinta */
+.ink-dot{
+  position:fixed;pointer-events:none;z-index:9998;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gold);opacity:.5;
+  animation:inkfade .9s var(--ease) forwards;
+}
+@keyframes inkfade{to{opacity:0;transform:scale(.1) translateY(8px)}}
+
+/* ============================================================
+   ESTRUTURA DA PÁGINA
+   ============================================================ */
+.wrap{max-width:1080px;margin:0 auto;padding:0 clamp(18px,4vw,48px)}
+section.lab{padding:clamp(70px,12vh,130px) 0;border-bottom:1px solid rgba(239,221,184,.08)}
+.lab-tag{
+  font-family:var(--util);font-size:10px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:14px;
+}
+.lab h2{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(26px,4.6vw,42px);letter-spacing:.04em;line-height:1.25;
+  margin-bottom:12px;
+}
+.lab .lead{
+  color:var(--parch-3);line-height:1.75;max-width:62ch;margin-bottom:34px;
+  font-size:clamp(14.5px,1.8vw,16.5px);
+}
+.lab .tech{
+  font-family:var(--util);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-soft);color:#6E5A44;margin-top:10px;line-height:2;
+}
+.demos{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px}
+.demo{
+  position:relative;border:1px solid rgba(239,221,184,.14);border-radius:3px;
+  background:var(--void-2);
+  min-height:230px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.demo-label{
+  position:absolute;left:14px;top:12px;z-index:8;
+  font-family:var(--util);font-size:9px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--parch-3);opacity:.75;pointer-events:none;
+}
+
+/* barra de progresso de rolagem — corda no topo */
+#trilha-topo{
+  position:fixed;left:0;top:0;width:100%;height:5px;z-index:900;
+  background:rgba(239,221,184,.06);
+}
+#trilha-topo i{
+  display:block;height:100%;width:0;
+  background:linear-gradient(90deg,var(--wax),var(--gold));
+  box-shadow:0 0 12px rgba(200,160,53,.6);
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+#hero{min-height:92vh;display:flex;align-items:center;border-bottom:1px solid rgba(239,221,184,.08);position:relative;overflow:hidden}
+#hero .kicker{font-family:var(--util);font-size:10.5px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
+#hero h1{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(34px,7vw,72px);line-height:1.12;letter-spacing:.02em;
+  margin-bottom:26px;
+}
+#hero h1 em{font-style:normal;
+  background:linear-gradient(100deg,var(--gold) 20%,var(--gold-lit) 40%,#fff8e0 50%,var(--gold-lit) 60%,var(--gold) 80%);
+  background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4.5s linear infinite;
+}
+@keyframes shimmer{to{background-position:-200% 0}}
+#hero p{color:var(--parch-3);max-width:56ch;line-height:1.8;margin-bottom:34px}
+.hero-hint{
+  font-family:var(--util);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;
+  color:#6E5A44;display:flex;align-items:center;gap:10px;
+}
+.hero-hint::after{content:"";width:1px;height:34px;background:linear-gradient(var(--gold),transparent);
+  animation:dropline 1.8s var(--ease) infinite}
+@keyframes dropline{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ============================================================
+   S1 — LUZ
+   ============================================================ */
+.luz-box{position:relative;background:
+  radial-gradient(ellipse at 30% 20%,rgba(255,255,255,.25),transparent 55%),
+  linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));
+}
+.luz-box .conteudo{
+  position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;
+  align-items:center;justify-content:center;color:var(--ink);text-align:center;padding:20px;
+}
+.luz-box .conteudo b{font-family:var(--display);font-size:20px;letter-spacing:.1em}
+.luz-box .conteudo span{font-size:13px;opacity:.7}
+.luz-veu{
+  position:absolute;inset:0;z-index:5;pointer-events:none;
+  background:radial-gradient(circle var(--raio,120px) at var(--mx,50%) var(--my,50%),
+    transparent 0%,rgba(8,5,2,.25) 45%,rgba(8,5,2,.93) 100%);
+}
+.luz-vela .luz-veu{animation:flicker 3s steps(12) infinite}
+@keyframes flicker{
+  0%,100%{--raio:120px}8%{--raio:112px}16%{--raio:126px}24%{--raio:116px}
+  40%{--raio:130px}52%{--raio:110px}66%{--raio:124px}80%{--raio:114px}90%{--raio:128px}
+}
+@property --raio{syntax:"<length>";inherits:false;initial-value:120px}
+
+/* brasas subindo */
+.brasas{background:radial-gradient(ellipse at 50% 110%, #2A1608 0%, var(--void-2) 60%)}
+.brasa{
+  position:absolute;bottom:-10px;border-radius:50%;
+  background:radial-gradient(circle,var(--gold-lit),var(--wax-lit) 70%,transparent);
+  filter:blur(.4px);
+  animation:sobe linear infinite;
+}
+@keyframes sobe{
+  0%{transform:translate(0,0) scale(1);opacity:0}
+  10%{opacity:.9}
+  100%{transform:translate(var(--sway,20px),-240px) scale(.2);opacity:0}
+}
+
+/* feixes de luz (god rays) */
+.raios{background:var(--void-2)}
+.raios::before{
+  content:"";position:absolute;inset:-40% -20%;
+  background:
+    conic-gradient(from 178deg at 50% -18%,
+      transparent 0deg,rgba(239,206,121,.12) 6deg,transparent 12deg,
+      transparent 18deg,rgba(239,206,121,.09) 24deg,transparent 30deg,
+      transparent 38deg,rgba(239,206,121,.13) 44deg,transparent 50deg);
+  animation:raio-gira 11s ease-in-out infinite alternate;
+}
+@keyframes raio-gira{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+.raios .bau{width:84px;filter:drop-shadow(0 14px 24px rgba(0,0,0,.7))}
+
+/* ============================================================
+   S2 — CLIQUE
+   ============================================================ */
+.clique-area{background:
+  linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));
+  color:var(--ink);user-select:none;-webkit-user-select:none;
+}
+.clique-area .dica{font-family:var(--util);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.55;pointer-events:none}
+.splat{position:absolute;pointer-events:none;transform:translate(-50%,-50%)}
+.splat svg{overflow:visible;display:block}
+.splat .gota{transform-origin:center;animation:gota .5s var(--ease-back) forwards;opacity:0}
+@keyframes gota{0%{opacity:0;transform:scale(0)}60%{opacity:1;transform:scale(1.15)}100%{opacity:.92;transform:scale(1)}}
+
+.faisca-area{background:var(--void-2)}
+.faisca{
+  position:absolute;width:4px;height:4px;border-radius:50%;
+  background:var(--gold-lit);pointer-events:none;
+  box-shadow:0 0 8px var(--gold);
+}
+.anel{
+  position:absolute;border:1.5px solid var(--gold-lit);border-radius:50%;
+  pointer-events:none;transform:translate(-50%,-50%);
+  animation:anelExpande .7s var(--ease) forwards;
+}
+@keyframes anelExpande{from{width:8px;height:8px;opacity:.9}to{width:140px;height:140px;opacity:0}}
+
+.tremor-demo{background:var(--void-2);flex-direction:column;gap:18px}
+.cartinha{
+  width:150px;padding:22px 16px;text-align:center;
+  background:linear-gradient(150deg,var(--parch-1),var(--parch-2));
+  color:var(--ink);font-family:var(--hand);font-size:17px;
+  box-shadow:0 18px 40px -18px #000;
+  transform:rotate(-2deg);
+}
+.cartinha.shake{animation:shake .45s var(--ease)}
+@keyframes shake{
+  0%,100%{transform:rotate(-2deg)}
+  15%{transform:translate(3px,5px) rotate(-1deg)}
+  35%{transform:translate(-4px,-2px) rotate(-3deg)}
+  55%{transform:translate(2px,3px) rotate(-1.4deg)}
+  75%{transform:translate(-1px,-1px) rotate(-2.4deg)}
+}
+.btn-lab{
+  font-family:var(--util);font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--void);background:var(--parch-1);padding:12px 22px 11px;border-radius:1px;
+  transition:transform .4s var(--ease-back),background .35s,box-shadow .35s;
+}
+.btn-lab:hover{background:var(--gold-lit);transform:translateY(-2px);box-shadow:0 12px 28px -14px var(--gold)}
+.btn-lab:active{transform:translateY(1px) scale(.97)}
+
+/* ============================================================
+   S3 — ARRASTAR
+   ============================================================ */
+.arrasto-carta{background:var(--void-2);flex-direction:column}
+.carta-alvo{
+  position:relative;width:210px;height:150px;
+  background:linear-gradient(155deg,var(--parch-1),var(--parch-2) 70%,var(--parch-3));
+  color:var(--ink);display:flex;align-items:center;justify-content:center;
+  font-family:var(--hand);font-size:16px;text-align:center;padding:14px;
+  box-shadow:0 22px 44px -20px #000;
+  transition:box-shadow .3s;
+}
+.carta-alvo.pronta{box-shadow:0 22px 44px -20px #000,0 0 0 2px var(--gold),0 0 30px -6px var(--gold)}
+.lacre-drag{
+  position:absolute;z-index:10;width:74px;height:74px;
+  touch-action:none;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.6));
+  transition:transform .2s var(--ease);
+}
+.lacre-drag.arrastando{transform:scale(1.18) rotate(6deg);transition:none}
+.lacre-drag.voltando{transition:left .5s var(--ease-back),top .5s var(--ease-back),transform .3s}
+.lacre-drag svg{width:100%;height:100%;display:block;pointer-events:none}
+.lacre-fixado{animation:fixa .5s var(--ease) forwards}
+@keyframes fixa{
+  0%{transform:scale(1.4) rotate(10deg)}
+  55%{transform:scale(.92) rotate(-6deg)}
+  100%{transform:scale(1) rotate(-8deg)}
+}
+
+/* cortina rasgada */
+.rasgo-demo{background:linear-gradient(150deg,#1E1509,#120D06)}
+.rasgo-fundo{
+  position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;
+  align-items:center;justify-content:center;color:var(--gold-lit);text-align:center;padding:24px;
+}
+.rasgo-fundo b{font-family:var(--display);font-size:19px;letter-spacing:.14em}
+.rasgo-fundo span{font-size:12.5px;color:var(--parch-3)}
+.rasgo-capa{
+  position:absolute;inset:0;z-index:4;
+  background:linear-gradient(150deg,var(--parch-1),var(--parch-2) 55%,var(--parch-3));
+  clip-path:polygon(var(--corte,100%) 0, 100% 0, 100% 100%, var(--corte,100%) 100%);
+  display:none;
+}
+.rasgo-envelope{
+  position:absolute;inset:0;z-index:5;
+  background:linear-gradient(150deg,var(--parch-1),var(--parch-2) 55%,var(--parch-3));
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--util);font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  touch-action:pan-y;
+}
+.rasgo-borda{
+  position:absolute;top:0;bottom:0;left:calc(var(--corte,100%) - 14px);z-index:6;
+  width:28px;pointer-events:none;opacity:0;
+}
+.rasgo-demo.rasgando .rasgo-borda{opacity:1}
+
+/* mapa arrastável */
+.pan-demo{background:var(--void-2);touch-action:none;user-select:none;-webkit-user-select:none}
+.pan-mundo{
+  position:absolute;width:220%;height:220%;left:0;top:0;
+  background:
+    radial-gradient(circle at 20% 30%,rgba(200,160,53,.14),transparent 22%),
+    radial-gradient(circle at 75% 60%,rgba(168,23,51,.16),transparent 20%),
+    linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));
+  will-change:transform;
+}
+.pan-mundo svg{position:absolute;inset:0;width:100%;height:100%}
+.pan-demo .dica-pan{
+  position:absolute;z-index:7;bottom:12px;left:50%;transform:translateX(-50%);
+  font-family:var(--util);font-size:9px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink);opacity:.55;pointer-events:none;
+}
+
+/* ============================================================
+   S4 — ROLAGEM
+   ============================================================ */
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.12s}.reveal.d2{transition-delay:.24s}.reveal.d3{transition-delay:.36s}
+
+/* trilha desenhada pela rolagem */
+#secao-trilha{position:relative;height:280vh}
+.trilha-sticky{
+  position:sticky;top:0;height:100vh;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.trilha-palco{
+  position:relative;width:min(92vw,820px);aspect-ratio:10/7;max-height:76vh;
+  background:linear-gradient(150deg,var(--parch-1),var(--parch-2) 55%,var(--parch-3));
+  border-radius:2px;box-shadow:0 40px 80px -30px #000;
+}
+.trilha-palco svg{position:absolute;inset:0;width:100%;height:100%}
+.trilha-caminho{fill:none;stroke:var(--wax);stroke-width:3;stroke-linecap:round;stroke-dasharray:1 14;
+  /* o offset é controlado por JS conforme a rolagem */}
+.trilha-marco{opacity:0;transition:opacity .5s,transform .5s var(--ease-back);transform:scale(.4);transform-origin:center;transform-box:fill-box}
+.trilha-marco.aceso{opacity:1;transform:none}
+.trilha-status{
+  position:absolute;left:50%;bottom:6%;transform:translateX(-50%);
+  font-family:var(--util);font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink);opacity:.6;
+}
+
+/* parallax */
+.parallax-demo{position:relative;height:56vh;min-height:340px;overflow:hidden;border-radius:3px;border:1px solid rgba(239,221,184,.14)}
+.p-layer{position:absolute;inset:-12% 0;will-change:transform;pointer-events:none}
+.p-ceu{background:radial-gradient(ellipse at 50% 20%,#231A0C,var(--void) 75%)}
+.p-lua{position:absolute;left:70%;top:16%;width:64px;height:64px;border-radius:50%;
+  background:radial-gradient(circle at 38% 34%,#FFF6DA,var(--gold-lit) 55%,var(--gold));
+  box-shadow:0 0 60px 12px rgba(239,206,121,.28)}
+.p-morros-fundo{background:radial-gradient(120% 68% at 50% 108%,#3A2A14 48%,transparent 49%)}
+.p-morros-frente{background:radial-gradient(130% 74% at 30% 116%,#241A0C 52%,transparent 53%),
+                        radial-gradient(120% 66% at 84% 112%,#1C1408 50%,transparent 51%)}
+.p-texto{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center}
+.p-texto b{font-family:var(--display);font-weight:400;font-size:clamp(20px,3.6vw,32px);letter-spacing:.22em}
+
+/* ============================================================
+   S5 — TEXTO
+   ============================================================ */
+.texto-demo{background:linear-gradient(150deg,var(--parch-1),var(--parch-2) 60%,var(--parch-3));color:var(--ink);flex-direction:column;gap:20px;padding:30px;text-align:center}
+.escrita{
+  font-family:var(--hand);font-size:clamp(19px,2.6vw,25px);line-height:1.5;
+  clip-path:inset(0 100% 0 0);
+}
+.escrita.escreve{transition:clip-path 2.4s var(--ease);clip-path:inset(0 0 0 0)}
+.letras span{display:inline-block;opacity:0;transform:translateY(12px) rotate(4deg);
+  transition:opacity .5s var(--ease),transform .5s var(--ease-back)}
+.letras.solta span{opacity:1;transform:none}
+.texto-demo .rebtn{font-family:var(--util);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--ink-soft);border-bottom:1px solid rgba(36,28,21,.3);padding-bottom:2px}
+
+/* ============================================================
+   S6 — 3D E MAGNETISMO
+   ============================================================ */
+.tilt-demo{background:var(--void-2);perspective:900px}
+.tilt-card{
+  position:relative;width:min(78%,250px);aspect-ratio:3/4;
+  background:linear-gradient(155deg,var(--parch-1),var(--parch-2) 62%,var(--parch-3));
+  border-radius:4px;box-shadow:0 30px 60px -24px #000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  color:var(--ink);transform-style:preserve-3d;
+  transition:transform .18s ease-out;
+  will-change:transform;
+}
+.tilt-card .selo3d{width:44%;transform:translateZ(38px);filter:drop-shadow(0 10px 14px rgba(0,0,0,.35))}
+.tilt-card b{font-family:var(--display);letter-spacing:.22em;font-size:15px;transform:translateZ(26px)}
+.tilt-card i{font-style:normal;font-family:var(--util);font-size:8.5px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;transform:translateZ(20px)}
+.tilt-brilho{
+  position:absolute;inset:0;border-radius:4px;pointer-events:none;
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.5),transparent 55%);
+  opacity:0;transition:opacity .3s;mix-blend-mode:soft-light;
+}
+.tilt-demo:hover .tilt-brilho{opacity:1}
+
+.mag-demo{background:var(--void-2)}
+.btn-mag{
+  font-family:var(--util);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--void);background:var(--gold-lit);padding:16px 30px 15px;border-radius:1px;
+  transition:box-shadow .3s;will-change:transform;
+}
+.btn-mag:hover{box-shadow:0 16px 40px -14px var(--gold)}
+
+/* ============================================================
+   RESUMO FINAL
+   ============================================================ */
+.resumo{padding:clamp(70px,12vh,130px) 0 120px}
+.resumo table{width:100%;border-collapse:collapse;font-size:14px}
+.resumo th{
+  text-align:left;font-family:var(--util);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);padding:12px 14px;border-bottom:1px solid rgba(239,221,184,.2);
+}
+.resumo td{padding:13px 14px;border-bottom:1px solid rgba(239,221,184,.08);color:var(--parch-2);line-height:1.6;vertical-align:top}
+.resumo td:first-child{font-family:var(--display);letter-spacing:.04em;white-space:nowrap}
+.nota-estrela{color:var(--gold-lit)}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  body{cursor:auto}#cursor{display:none}
+  .escrita{clip-path:none}
+}
+</style>
+</head>
+<body>
+
+<!-- cursor customizado -->
+<div id="cursor" aria-hidden="true">
+  <svg viewBox="-20 -20 40 40">
+    <circle class="c-ring" r="15"/>
+    <path class="c-needle" d="M0 -11 3 0 0 11 -3 0Z"/>
+    <circle class="c-dot" r="3"/>
+  </svg>
+</div>
+
+<!-- progresso de rolagem -->
+<div id="trilha-topo" aria-hidden="true"><i id="trilha-fill"></i></div>
+
+<!-- símbolo do lacre reutilizado -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lacre" viewBox="-60 -60 120 120">
+    <path id="lacre-serrilha" fill="#A81733"/>
+    <circle r="40" fill="#8E1029"/>
+    <circle r="36" fill="none" stroke="#C93450" stroke-width="1.5" opacity=".8"/>
+    <g fill="none" stroke="#E9A6B2" stroke-width="2.6" stroke-linecap="round">
+      <circle r="20"/><path d="M0 -14V6"/><path d="M-6 -8 0 -14 6 -8"/>
+    </g>
+  </symbol>
+  <symbol id="bauzinho" viewBox="0 0 200 160">
+    <path d="M24 70a76 40 0 0 1 152 0Z" fill="#8B4A22" stroke="#5C2E11" stroke-width="3"/>
+    <path d="M24 70h152v58a8 8 0 0 1-8 8H32a8 8 0 0 1-8-8Z" fill="#A45A28" stroke="#5C2E11" stroke-width="3"/>
+    <path d="M36 78h128v14H36Z" fill="#E9A93C" opacity=".9"/>
+    <circle cx="100" cy="106" r="9" fill="#5C2E11"/>
+  </symbol>
+</svg>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <div class="wrap">
+    <div class="kicker">Laboratório de efeitos · Caça ao Primeiro Pin</div>
+    <h1>Cada pixel pode virar<br><em>parte da aventura</em></h1>
+    <p>Esta página é um catálogo vivo: cada seção demonstra um recurso de interação
+       que podemos usar na versão digital da caça. Mexa, clique, arraste e role —
+       tudo aqui já está na estética do mapa. No fim, uma tabela resume onde cada
+       efeito encaixaria na experiência real.</p>
+    <div class="hero-hint">Role para explorar</div>
+  </div>
+</section>
+
+<!-- ============ 01 CURSOR ============ -->
+<section class="lab" id="s-cursor">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 01</div>
+    <h2 class="reveal">O cursor vira bússola</h2>
+    <p class="lead reveal d1">Você já está usando: o cursor do sistema sumiu e uma bússola te segue,
+       com a agulha apontando na direção do movimento. Sobre qualquer coisa clicável ela abre em um
+       anel dourado de mira. É a forma mais barata de dizer "você está dentro do mundo do jogo" —
+       está ativa na página inteira, sem nenhum elemento extra.</p>
+    <div class="demos">
+      <div class="demo reveal d1" data-hover style="flex-direction:column;gap:10px">
+        <span class="demo-label">Passe o mouse aqui</span>
+        <b style="font-family:var(--display);letter-spacing:.14em">ÁREA INTERATIVA</b>
+        <span style="font-size:12.5px;color:var(--parch-3)">o anel dourado indica "isso é clicável"</span>
+      </div>
+      <div class="demo reveal d2" id="demo-tinta" style="flex-direction:column;gap:10px">
+        <span class="demo-label">Trilha de tinta</span>
+        <b style="font-family:var(--display);letter-spacing:.14em">RASTRO</b>
+        <span style="font-size:12.5px;color:var(--parch-3)">mova o mouse dentro desta caixa</span>
+      </div>
+    </div>
+    <div class="tech reveal d2">Técnica: cursor:none + elemento fixo seguindo pointermove · estados por classe no body · partículas descartáveis para o rastro</div>
+  </div>
+</section>
+
+<!-- ============ 02 LUZ ============ -->
+<section class="lab" id="s-luz">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 02</div>
+    <h2 class="reveal">Luz é o que faz o escuro valer a pena</h2>
+    <p class="lead reveal d1">O mapa já tem a lanterna. Aqui estão três evoluções dela: a vela que
+       treme (a luz respira, parece fogo de verdade), brasas subindo (o ar da caverna tem vida) e
+       feixes de luz de tesouro (o baú final merece uma revelação teatral).</p>
+    <div class="demos">
+      <div class="demo luz-box luz-vela reveal d1" id="demo-vela">
+        <span class="demo-label" style="z-index:6;color:var(--parch-1)">Vela que treme</span>
+        <div class="conteudo"><b>SEGREDO</b><span>ilumine para ler — o raio da luz oscila sozinho</span></div>
+        <div class="luz-veu"></div>
+      </div>
+      <div class="demo brasas reveal d2" id="demo-brasas">
+        <span class="demo-label">Brasas no ar</span>
+        <span style="font-size:12.5px;color:var(--parch-3)">partículas quentes sobem continuamente</span>
+      </div>
+      <div class="demo raios reveal d3">
+        <span class="demo-label">Feixes do tesouro</span>
+        <svg class="bau" viewBox="0 0 200 160"><use href="#bauzinho"/></svg>
+      </div>
+    </div>
+    <div class="tech reveal d3">Técnica: radial-gradient com variáveis CSS + @property animando o raio · partículas CSS geradas por JS · conic-gradient animado para os feixes</div>
+  </div>
+</section>
+
+<!-- ============ 03 CLIQUE ============ -->
+<section class="lab" id="s-clique">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 03</div>
+    <h2 class="reveal">O clique tem que deixar marca</h2>
+    <p class="lead reveal d1">Clicar em algo importante não pode ser silencioso. Três respostas:
+       respingo de cera que fica na página (cada clique é permanente, como um carimbo),
+       explosão de faíscas com onda de choque, e o tremor físico — a folha treme e vibra no celular.</p>
+    <div class="demos">
+      <div class="demo clique-area reveal d1" id="demo-splat">
+        <span class="demo-label" style="color:var(--ink)">Respingo de cera</span>
+        <span class="dica">clique em qualquer lugar — as marcas ficam</span>
+      </div>
+      <div class="demo faisca-area reveal d2" id="demo-faisca" data-hover>
+        <span class="demo-label">Faíscas + onda</span>
+        <span style="font-size:12.5px;color:var(--parch-3);pointer-events:none">clique para estourar</span>
+      </div>
+      <div class="demo tremor-demo reveal d3">
+        <span class="demo-label">Tremor + vibração</span>
+        <div class="cartinha" id="cartinha">selada!</div>
+        <button class="btn-lab" id="btn-tremor" data-hover>Carimbar</button>
+      </div>
+    </div>
+    <div class="tech reveal d3">Técnica: SVG procedural no ponto do clique · partículas com física simples (velocidade + gravidade) · keyframes de shake + navigator.vibrate()</div>
+  </div>
+</section>
+
+<!-- ============ 04 ARRASTAR ============ -->
+<section class="lab" id="s-arrastar">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 04</div>
+    <h2 class="reveal">Arrastar é fazer com as mãos</h2>
+    <p class="lead reveal d1">Hoje a tarefa é selada com um clique. E se o convidado tivesse que
+       <b>pegar o lacre e carimbar a carta com a própria mão</b>? Esforço físico cria memória.
+       Também: rasgar um envelope arrastando, e explorar um mapa maior que a tela.</p>
+    <div class="demos">
+      <div class="demo arrasto-carta reveal d1" id="demo-arrasto">
+        <span class="demo-label">Arraste o lacre até a carta</span>
+        <div class="carta-alvo" id="carta-alvo">a tarefa espera<br>pelo seu selo</div>
+        <div class="lacre-drag" id="lacre-drag" data-hover>
+          <svg viewBox="-60 -60 120 120"><use href="#lacre"/></svg>
+        </div>
+      </div>
+      <div class="demo rasgo-demo reveal d2" id="demo-rasgo">
+        <span class="demo-label" style="z-index:7;color:var(--parch-1)">Rasgue o envelope</span>
+        <div class="rasgo-fundo"><b>TAREFA 3</b><span>o conteúdo aparece pelo rasgo</span></div>
+        <div class="rasgo-capa" id="rasgo-capa"></div>
+        <svg class="rasgo-borda" id="rasgo-borda" viewBox="0 0 28 300" preserveAspectRatio="none">
+          <path id="rasgo-path" fill="none" stroke="#8a6f45" stroke-width="2"/>
+        </svg>
+        <div class="rasgo-envelope" id="rasgo-envelope">← arraste para rasgar</div>
+      </div>
+      <div class="demo pan-demo reveal d3" id="demo-pan">
+        <span class="demo-label" style="z-index:7">Mapa maior que a tela</span>
+        <div class="pan-mundo" id="pan-mundo">
+          <svg viewBox="0 0 1000 700" preserveAspectRatio="none">
+            <path d="M60 620c80-30 180-10 260-40s120-80 220-70 150 70 250 60 90-40 150-30" fill="none" stroke="#241C15" stroke-width="2" opacity=".4"/>
+            <path d="M200 80c30 90-20 150 10 240 25 85 130 105 145 200" fill="none" stroke="#241C15" stroke-width="1.4" stroke-dasharray="7 6" opacity=".4"/>
+            <text x="300" y="200" font-family="Georgia" font-size="34" fill="#241C15" opacity=".3" letter-spacing="12">TERRAS ALTAS</text>
+            <text x="520" y="520" font-family="Georgia" font-size="34" fill="#241C15" opacity=".3" letter-spacing="12">MAR DA ESPERA</text>
+            <g stroke="#A81733" stroke-width="7" stroke-linecap="round" opacity=".8">
+              <path d="M700 300 760 360M760 300 700 360"/>
+            </g>
+          </svg>
+        </div>
+        <span class="dica-pan">arraste para explorar</span>
+      </div>
+    </div>
+    <div class="tech reveal d3">Técnica: Pointer Events + setPointerCapture · clip-path com borda serrilhada dinâmica · transform com inércia no mapa</div>
+  </div>
+</section>
+
+<!-- ============ 05 ROLAGEM: seção sticky ============ -->
+<section id="secao-trilha">
+  <div class="trilha-sticky">
+    <div class="trilha-palco">
+      <svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+        <rect x="18" y="18" width="964" height="664" rx="4" fill="none" stroke="#241C15" stroke-width="2" opacity=".5"/>
+        <path class="trilha-caminho" id="trilha-caminho"
+          d="M110 590 C 240 520, 180 380, 320 340 S 520 420, 620 320 S 700 150, 850 130"/>
+        <g class="trilha-marco" id="marco-1" transform="translate(110,590)">
+          <circle r="26" fill="none" stroke="#A81733" stroke-width="3"/>
+          <text y="6" text-anchor="middle" font-family="Georgia" font-size="18" fill="#241C15">1</text>
+        </g>
+        <g class="trilha-marco" id="marco-2" transform="translate(320,340)">
+          <circle r="26" fill="none" stroke="#A81733" stroke-width="3"/>
+          <text y="6" text-anchor="middle" font-family="Georgia" font-size="18" fill="#241C15">2</text>
+        </g>
+        <g class="trilha-marco" id="marco-3" transform="translate(620,320)">
+          <circle r="26" fill="none" stroke="#A81733" stroke-width="3"/>
+          <text y="6" text-anchor="middle" font-family="Georgia" font-size="18" fill="#241C15">3</text>
+        </g>
+        <g class="trilha-marco" id="marco-x" transform="translate(850,130)">
+          <path d="M-16 -16 16 16M16 -16 -16 16" stroke="#A81733" stroke-width="6" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <div class="trilha-status" id="trilha-status">Role — a trilha se desenha com você</div>
+    </div>
+  </div>
+</section>
+
+<section class="lab" id="s-rolagem">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 05</div>
+    <h2 class="reveal">A rolagem conta a história</h2>
+    <p class="lead reveal d1">Você acabou de viver o efeito mais forte desta página: a tela "grudou"
+       e a trilha do mapa se desenhou no ritmo da sua rolagem — você controla o tempo da narrativa
+       com o dedo. Somam-se a isso: a corda de progresso no topo da página, os blocos que emergem
+       ao entrar na tela (todos os títulos desta página fazem isso) e o parallax abaixo, que dá
+       profundidade de diorama.</p>
+    <div class="parallax-demo reveal d1" id="demo-parallax">
+      <div class="p-layer p-ceu"></div>
+      <div class="p-layer" data-speed="0.2"><div class="p-lua"></div></div>
+      <div class="p-layer p-morros-fundo" data-speed="0.45"></div>
+      <div class="p-layer p-morros-frente" data-speed="0.8"></div>
+      <div class="p-texto" data-speed="0.55"><b>A NOITE DA CAÇA</b></div>
+    </div>
+    <div class="tech reveal d2">Técnica: position:sticky + progresso da seção controlando stroke-dashoffset · IntersectionObserver para reveals · camadas com translateY proporcional ao scroll</div>
+  </div>
+</section>
+
+<!-- ============ 06 TEXTO ============ -->
+<section class="lab" id="s-texto">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 06</div>
+    <h2 class="reveal">Palavras que se escrevem sozinhas</h2>
+    <p class="lead reveal d1">Num mundo de cartas e mapas, o texto não deve simplesmente aparecer:
+       deve ser <b>escrito</b>. A pena revela a frase da esquerda para a direita; as letras podem
+       cair uma a uma como tinta fresca; e o dourado do título lá em cima tem brilho que corre.</p>
+    <div class="demos">
+      <div class="demo texto-demo reveal d1">
+        <span class="demo-label" style="color:var(--ink)">Escrita à pena</span>
+        <div class="escrita" id="escrita-1">"Encontre um associado que te inspire, que te passe confiança…"</div>
+        <button class="rebtn" data-hover data-rewrite="escrita-1">escrever de novo</button>
+      </div>
+      <div class="demo texto-demo reveal d2">
+        <span class="demo-label" style="color:var(--ink)">Letra por letra</span>
+        <div class="letras" id="letras-1" style="font-family:var(--display);font-size:clamp(18px,2.4vw,24px);letter-spacing:.12em">O PRIMEIRO PIN É SEU</div>
+        <button class="rebtn" data-hover data-reletters="letras-1">soltar de novo</button>
+      </div>
+    </div>
+    <div class="tech reveal d2">Técnica: clip-path animado (efeito pena) · split em spans com delay incremental · gradiente animado com background-clip:text (título do topo)</div>
+  </div>
+</section>
+
+<!-- ============ 07 3D ============ -->
+<section class="lab" id="s-3d">
+  <div class="wrap">
+    <div class="lab-tag reveal">Capítulo 07</div>
+    <h2 class="reveal">Profundidade e atração</h2>
+    <p class="lead reveal d1">Dois acabamentos de "produto premium": o cartão que inclina em 3D
+       seguindo o mouse — com o selo flutuando acima do papel — e o botão magnético, que se estica
+       na direção do cursor antes do clique. Perfeitos para o selo de cada tarefa e para o
+       botão "Abrir o mapa".</p>
+    <div class="demos">
+      <div class="demo tilt-demo" id="demo-tilt">
+        <span class="demo-label">Cartão 3D — passe o mouse</span>
+        <div class="tilt-card" id="tilt-card">
+          <svg class="selo3d" viewBox="-60 -60 120 120"><use href="#lacre"/></svg>
+          <b>A RAIZ</b>
+          <i>Tarefa · 7</i>
+          <div class="tilt-brilho" id="tilt-brilho"></div>
+        </div>
+      </div>
+      <div class="demo mag-demo" id="demo-mag">
+        <span class="demo-label">Botão magnético</span>
+        <button class="btn-mag" id="btn-mag" data-hover>Abrir o mapa</button>
+      </div>
+    </div>
+    <div class="tech reveal d2">Técnica: perspective + rotateX/rotateY por posição do mouse · translateZ nas camadas internas · atração com interpolação suave (lerp)</div>
+  </div>
+</section>
+
+<!-- ============ RESUMO ============ -->
+<section class="resumo">
+  <div class="wrap">
+    <div class="lab-tag reveal">Mapa de aplicação</div>
+    <h2 class="reveal" style="font-family:var(--display);font-weight:400;font-size:clamp(26px,4.6vw,42px);margin-bottom:12px">Onde cada efeito entra na caça</h2>
+    <p class="lead reveal d1" style="margin-bottom:30px">Minha sugestão de prioridade: <span class="nota-estrela">★</span> = maior impacto pelo menor esforço.</p>
+    <div class="reveal d1" style="overflow-x:auto">
+      <table>
+        <tr><th>Efeito</th><th>Onde usar na experiência</th><th>Prioridade</th></tr>
+        <tr><td>Cursor-bússola</td><td>Página inteira (desktop). No celular, não existe — sem custo.</td><td><span class="nota-estrela">★</span> alto impacto, ~40 linhas</td></tr>
+        <tr><td>Arrastar o lacre</td><td>Substituir o botão "Selar esta tarefa" — o momento mais importante da caça vira um gesto físico.</td><td><span class="nota-estrela">★</span> o coração da experiência</td></tr>
+        <tr><td>Vela que treme</td><td>Upgrade direto da lanterna do mapa que já existe.</td><td><span class="nota-estrela">★</span> 5 linhas de CSS</td></tr>
+        <tr><td>Tremor + vibração</td><td>Já existe no selar — manter e ligar ao arrasto do lacre.</td><td>já feito</td></tr>
+        <tr><td>Respingo que fica</td><td>Cliques no mapa fora dos selos — o mapa acumula marcas da jornada.</td><td>médio</td></tr>
+        <tr><td>Faíscas + onda</td><td>Ao completar a última tarefa e ao abrir o baú.</td><td>médio</td></tr>
+        <tr><td>Trilha por rolagem</td><td>Transformar a página num pergaminho vertical: rolar = caminhar pela trilha. Mudança maior de estrutura (hoje é overflow:hidden), mas é o que faria alguém mandar o link pra outra pessoa.</td><td><span class="nota-estrela">★</span> a grande aposta</td></tr>
+        <tr><td>Rasgar envelope</td><td>Abertura de cada tarefa: em vez de a folha só surgir, o convidado rasga.</td><td>médio</td></tr>
+        <tr><td>Feixes de tesouro</td><td>Cena final, atrás do pin.</td><td>baixo esforço</td></tr>
+        <tr><td>Escrita à pena</td><td>Títulos das tarefas (já existe uma versão; refinar tempo).</td><td>já feito</td></tr>
+        <tr><td>Cartão 3D</td><td>Folha da tarefa no desktop; no toque, giroscópio (DeviceOrientation).</td><td>médio</td></tr>
+        <tr><td>Botão magnético</td><td>"Abrir o mapa" e "Selar".</td><td>baixo esforço</td></tr>
+        <tr><td>Mapa maior que a tela</td><td>Se o mapa crescer (mais tarefas/detalhes), explorar arrastando vira parte do jogo.</td><td>futuro</td></tr>
+      </table>
+    </div>
+    <p class="lead reveal d2" style="margin-top:34px">Fora do CSS/JS puro, ainda existem: <b>som</b> (papel, carimbo, moedas — Web Audio, sempre com botão de mudo),
+      <b>giroscópio</b> no celular (inclinar o aparelho move a luz da lanterna), <b>View Transitions API</b> para as trocas de cena,
+      e <b>confete de moedas</b> na conquista do pin. É só pedir que eu demonstro qualquer um.</p>
+  </div>
+</section>
+
+<script>
+(function(){
+"use strict";
+var reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var temHover = window.matchMedia("(hover:hover)").matches;
+function $(id){ return document.getElementById(id); }
+
+/* borda serrilhada do lacre (o símbolo é declarado sem o path preenchido) */
+(function(){
+  var pts=[],i,a,r;
+  for(i=0;i<48;i++){
+    a=i/48*Math.PI*2; r=(i%2?44:50);
+    pts.push((Math.cos(a)*r).toFixed(1)+" "+(Math.sin(a)*r).toFixed(1));
+  }
+  $("lacre-serrilha").setAttribute("d","M"+pts.join("L")+"Z");
+})();
+
+/* ==========================================================
+   CURSOR — bússola com agulha direcional
+   ========================================================== */
+if(temHover && !reduz){
+  var cur = $("cursor"), needle = cur.querySelector(".c-needle");
+  var cx=-100, cy=-100, px=-100, py=-100, ang=0;
+  document.addEventListener("pointermove", function(e){ cx=e.clientX; cy=e.clientY; });
+  document.addEventListener("pointerdown", function(){ document.body.classList.add("is-pressing"); });
+  document.addEventListener("pointerup", function(){ document.body.classList.remove("is-pressing"); });
+  (function loopCursor(){
+    var dx=cx-px, dy=cy-py;
+    if(Math.abs(dx)+Math.abs(dy) > 2) ang = Math.atan2(dy,dx)*180/Math.PI + 90;
+    px += dx*.35; py += dy*.35;
+    cur.style.transform = "";
+    cur.style.left = px+"px"; cur.style.top = py+"px";
+    needle.style.transform = "rotate("+ang+"deg)";
+    requestAnimationFrame(loopCursor);
+  })();
+  // estados de hover: tudo que é clicável abre a mira
+  document.addEventListener("pointerover", function(e){
+    if(e.target.closest("[data-hover],a,button")) document.body.classList.add("is-hovering");
+  });
+  document.addEventListener("pointerout", function(e){
+    if(e.target.closest("[data-hover],a,button")) document.body.classList.remove("is-hovering");
+  });
+}
+
+/* trilha de tinta — só dentro da caixa de demo */
+var tinta = $("demo-tinta"), ultTinta = 0;
+tinta.addEventListener("pointermove", function(e){
+  var agora = performance.now();
+  if(agora - ultTinta < 36 || reduz) return;
+  ultTinta = agora;
+  var d = document.createElement("i");
+  d.className = "ink-dot";
+  d.style.left = (e.clientX-3)+"px";
+  d.style.top = (e.clientY-3)+"px";
+  d.style.transform = "scale("+(0.5+Math.random())+")";
+  document.body.appendChild(d);
+  setTimeout(function(){ d.remove(); }, 950);
+});
+
+/* ==========================================================
+   LUZ
+   ========================================================== */
+// vela: luz segue o mouse dentro da caixa
+var vela = $("demo-vela");
+vela.addEventListener("pointermove", function(e){
+  var r = vela.getBoundingClientRect();
+  vela.style.setProperty("--mx", ((e.clientX-r.left)/r.width*100)+"%");
+  vela.style.setProperty("--my", ((e.clientY-r.top)/r.height*100)+"%");
+});
+
+// brasas
+if(!reduz){
+  var brasas = $("demo-brasas");
+  for(var i=0;i<22;i++){
+    var b = document.createElement("i");
+    b.className = "brasa";
+    var s = 3+Math.random()*5;
+    b.style.width = s+"px"; b.style.height = s+"px";
+    b.style.left = (Math.random()*100)+"%";
+    b.style.setProperty("--sway",(Math.random()*70-35)+"px");
+    b.style.animationDuration = (3.5+Math.random()*4)+"s";
+    b.style.animationDelay = (Math.random()*6)+"s";
+    brasas.appendChild(b);
+  }
+}
+
+/* ==========================================================
+   CLIQUE
+   ========================================================== */
+// respingo de cera permanente
+$("demo-splat").addEventListener("pointerdown", function(e){
+  var r = this.getBoundingClientRect();
+  var wrap = document.createElement("div");
+  wrap.className = "splat";
+  wrap.style.left = (e.clientX-r.left)+"px";
+  wrap.style.top = (e.clientY-r.top)+"px";
+  var rot = Math.random()*360;
+  var svg = ['<svg width="70" height="70" viewBox="-35 -35 70 70" style="transform:rotate('+rot+'deg)">'];
+  // blob central irregular
+  var pts=[], n=10;
+  for(var i=0;i<n;i++){
+    var a=i/n*Math.PI*2, rr=10+Math.random()*7;
+    pts.push((Math.cos(a)*rr).toFixed(1)+" "+(Math.sin(a)*rr).toFixed(1));
+  }
+  svg.push('<path class="gota" d="M'+pts.join("L")+'Z" fill="#A81733" opacity=".92"/>');
+  // gotículas satélites
+  for(var j=0;j<5;j++){
+    var a2=Math.random()*Math.PI*2, d2=16+Math.random()*14, r2=1.5+Math.random()*3;
+    svg.push('<circle class="gota" style="animation-delay:'+(0.06*j)+'s" cx="'+(Math.cos(a2)*d2).toFixed(1)+'" cy="'+(Math.sin(a2)*d2).toFixed(1)+'" r="'+r2.toFixed(1)+'" fill="#8E1029"/>');
+  }
+  svg.push('</svg>');
+  wrap.innerHTML = svg.join("");
+  this.appendChild(wrap);
+});
+
+// faíscas com física + onda de choque
+$("demo-faisca").addEventListener("pointerdown", function(e){
+  var box = this, r = box.getBoundingClientRect();
+  var x = e.clientX-r.left, y = e.clientY-r.top;
+  var anel = document.createElement("i");
+  anel.className = "anel";
+  anel.style.left = x+"px"; anel.style.top = y+"px";
+  box.appendChild(anel);
+  setTimeout(function(){ anel.remove(); }, 750);
+  if(reduz) return;
+  var parts = [];
+  for(var i=0;i<16;i++){
+    var p = document.createElement("i");
+    p.className = "faisca";
+    p.style.left = x+"px"; p.style.top = y+"px";
+    var a = Math.random()*Math.PI*2, v = 2.5+Math.random()*4.5;
+    parts.push({el:p, x:x, y:y, vx:Math.cos(a)*v, vy:Math.sin(a)*v-2, vida:1});
+    box.appendChild(p);
+  }
+  (function tick(){
+    var vivas = false;
+    parts.forEach(function(p){
+      if(p.vida<=0) return;
+      vivas = true;
+      p.vy += .18;                 // gravidade
+      p.x += p.vx; p.y += p.vy;
+      p.vida -= .022;
+      p.el.style.left = p.x+"px"; p.el.style.top = p.y+"px";
+      p.el.style.opacity = p.vida;
+      if(p.vida<=0) p.el.remove();
+    });
+    if(vivas) requestAnimationFrame(tick);
+  })();
+});
+
+// tremor
+$("btn-tremor").addEventListener("click", function(){
+  var c = $("cartinha");
+  c.classList.remove("shake");
+  void c.offsetWidth;              // reinicia a animação
+  c.classList.add("shake");
+  if(navigator.vibrate) navigator.vibrate([12,40,18]);
+});
+
+/* ==========================================================
+   ARRASTAR — lacre até a carta
+   ========================================================== */
+(function(){
+  var area = $("demo-arrasto"), lacre = $("lacre-drag"), alvo = $("carta-alvo");
+  var home = {left:"78%", top:"64%"};
+  function irHome(){ lacre.style.left = home.left; lacre.style.top = home.top; }
+  irHome();
+  var drag = null;
+  lacre.addEventListener("pointerdown", function(e){
+    if(lacre.classList.contains("lacre-fixado")) return;
+    lacre.setPointerCapture(e.pointerId);
+    lacre.classList.add("arrastando");
+    lacre.classList.remove("voltando");
+    drag = {id:e.pointerId};
+    e.preventDefault();
+  });
+  lacre.addEventListener("pointermove", function(e){
+    if(!drag || e.pointerId!==drag.id) return;
+    var r = area.getBoundingClientRect();
+    lacre.style.left = (e.clientX-r.left-37)+"px";
+    lacre.style.top = (e.clientY-r.top-37)+"px";
+    var a = alvo.getBoundingClientRect();
+    var sobre = e.clientX>a.left && e.clientX<a.right && e.clientY>a.top && e.clientY<a.bottom;
+    alvo.classList.toggle("pronta", sobre);
+  });
+  lacre.addEventListener("pointerup", function(e){
+    if(!drag) return;
+    drag = null;
+    lacre.classList.remove("arrastando");
+    if(alvo.classList.contains("pronta")){
+      // encaixa no centro da carta
+      var r = area.getBoundingClientRect(), a = alvo.getBoundingClientRect();
+      lacre.style.left = (a.left-r.left + a.width/2 - 37)+"px";
+      lacre.style.top = (a.top-r.top + a.height/2 - 37)+"px";
+      lacre.classList.add("lacre-fixado");
+      alvo.classList.remove("pronta");
+      alvo.innerHTML = "selada!<br><small style='font-family:var(--util);font-size:9px;letter-spacing:.2em'>TAREFA CONCLUÍDA</small>";
+      if(navigator.vibrate) navigator.vibrate([12,40,18]);
+      setTimeout(function(){        // reseta a demo
+        lacre.classList.remove("lacre-fixado");
+        lacre.classList.add("voltando");
+        alvo.innerHTML = "a tarefa espera<br>pelo seu selo";
+        irHome();
+      }, 2200);
+    } else {
+      lacre.classList.add("voltando");
+      irHome();
+    }
+  });
+})();
+
+/* rasgo do envelope */
+(function(){
+  var demo = $("demo-rasgo"), env = $("rasgo-envelope"), capa = $("rasgo-capa");
+  var borda = $("rasgo-borda"), caminho = $("rasgo-path");
+  // borda serrilhada aleatória
+  var d = "M14 0";
+  for(var y=10;y<=300;y+=10) d += " L"+(6+Math.random()*16).toFixed(1)+" "+y;
+  caminho.setAttribute("d", d);
+  var drag = null;
+  function corte(pct){
+    pct = Math.max(0, Math.min(100, pct));
+    env.style.clipPath = "polygon(0 0,"+pct+"% 0,"+pct+"% 100%,0 100%)";
+    demo.style.setProperty("--corte", pct+"%");
+    borda.style.left = "calc("+pct+"% - 14px)";
+    if(pct < 8){
+      env.style.display = "none";
+      borda.style.opacity = 0;
+      demo.classList.remove("rasgando");
+      setTimeout(function(){       // rearma a demo
+        env.style.display = "flex";
+        corte(100);
+      }, 2600);
+    }
+  }
+  env.addEventListener("pointerdown", function(e){
+    env.setPointerCapture(e.pointerId);
+    demo.classList.add("rasgando");
+    drag = {id:e.pointerId};
+  });
+  env.addEventListener("pointermove", function(e){
+    if(!drag || e.pointerId!==drag.id) return;
+    var r = demo.getBoundingClientRect();
+    corte((e.clientX-r.left)/r.width*100);
+  });
+  env.addEventListener("pointerup", function(){ drag = null; demo.classList.remove("rasgando"); });
+})();
+
+/* mapa arrastável com inércia */
+(function(){
+  var demo = $("demo-pan"), mundo = $("pan-mundo");
+  var x=-160, y=-120, vx=0, vy=0, drag=null;
+  function aplica(){
+    var r = demo.getBoundingClientRect();
+    var minX = r.width - mundo.offsetWidth, minY = r.height - mundo.offsetHeight;
+    x = Math.max(minX, Math.min(0, x));
+    y = Math.max(minY, Math.min(0, y));
+    mundo.style.transform = "translate("+x+"px,"+y+"px)";
+  }
+  demo.addEventListener("pointerdown", function(e){
+    demo.setPointerCapture(e.pointerId);
+    drag = {id:e.pointerId, px:e.clientX, py:e.clientY};
+    vx = vy = 0;
+  });
+  demo.addEventListener("pointermove", function(e){
+    if(!drag || e.pointerId!==drag.id) return;
+    vx = e.clientX-drag.px; vy = e.clientY-drag.py;
+    x += vx; y += vy;
+    drag.px = e.clientX; drag.py = e.clientY;
+    aplica();
+  });
+  demo.addEventListener("pointerup", function(){
+    drag = null;
+    (function inercia(){
+      if(drag) return;
+      vx *= .92; vy *= .92;
+      if(Math.abs(vx)+Math.abs(vy) < .4) return;
+      x += vx; y += vy; aplica();
+      requestAnimationFrame(inercia);
+    })();
+  });
+  aplica();
+})();
+
+/* ==========================================================
+   ROLAGEM
+   ========================================================== */
+// corda de progresso
+var fill = $("trilha-fill");
+function progresso(){
+  var h = document.documentElement;
+  var p = h.scrollTop / (h.scrollHeight - h.clientHeight);
+  fill.style.width = (p*100)+"%";
+}
+// reveals
+var obs = new IntersectionObserver(function(es){
+  es.forEach(function(en){
+    if(en.isIntersecting){
+      en.target.classList.add("in");
+      if(en.target.classList.contains("escrita")) en.target.classList.add("escreve");
+      if(en.target.classList.contains("letras")) en.target.classList.add("solta");
+      obs.unobserve(en.target);
+    }
+  });
+},{threshold:.25});
+document.querySelectorAll(".reveal").forEach(function(n){ obs.observe(n); });
+
+// trilha desenhada pela rolagem (seção sticky)
+var caminho = $("trilha-caminho"), secTrilha = $("secao-trilha");
+var LTrilha = caminho.getTotalLength();
+caminho.style.strokeDasharray = "1 14";
+// truque: usamos dashoffset sobre um segundo dasharray via pathLength normalizado
+caminho.setAttribute("pathLength", 1000);
+caminho.style.strokeDasharray = "1000";
+caminho.style.strokeDashoffset = "1000";
+var marcos = [
+  {el:$("marco-1"), em:.02},
+  {el:$("marco-2"), em:.34},
+  {el:$("marco-3"), em:.62},
+  {el:$("marco-x"), em:.97}
+];
+function trilhaScroll(){
+  var r = secTrilha.getBoundingClientRect();
+  var total = r.height - window.innerHeight;
+  var p = Math.max(0, Math.min(1, -r.top/total));
+  caminho.style.strokeDashoffset = 1000 - p*1000;
+  marcos.forEach(function(m){ m.el.classList.toggle("aceso", p >= m.em); });
+  $("trilha-status").textContent =
+    p<=0 ? "Role — a trilha se desenha com você" :
+    p>=1 ? "✕ marca o lugar" :
+    Math.round(p*100)+"% do caminho";
+}
+
+// parallax
+var pDemo = $("demo-parallax");
+var pLayers = pDemo.querySelectorAll("[data-speed]");
+function parallax(){
+  var r = pDemo.getBoundingClientRect();
+  var centro = r.top + r.height/2 - window.innerHeight/2;
+  pLayers.forEach(function(l){
+    l.style.transform = "translateY("+(centro * -parseFloat(l.dataset.speed) * .25)+"px)";
+  });
+}
+
+var aguardando = false;
+function aoRolar(){
+  if(aguardando) return;
+  aguardando = true;
+  requestAnimationFrame(function(){
+    progresso(); trilhaScroll(); parallax();
+    aguardando = false;
+  });
+}
+document.addEventListener("scroll", aoRolar, {passive:true});
+aoRolar();
+
+/* ==========================================================
+   TEXTO
+   ========================================================== */
+// letra por letra: divide em spans
+(function(){
+  var alvo = $("letras-1");
+  var txt = alvo.textContent;
+  alvo.textContent = "";
+  txt.split("").forEach(function(ch,i){
+    var s = document.createElement("span");
+    s.textContent = ch === " " ? " " : ch;
+    s.style.transitionDelay = (i*45)+"ms";
+    alvo.appendChild(s);
+  });
+})();
+document.querySelectorAll("[data-rewrite]").forEach(function(b){
+  b.addEventListener("click", function(){
+    var t = $(b.dataset.rewrite);
+    t.classList.remove("escreve");
+    void t.offsetWidth;
+    t.classList.add("escreve");
+  });
+});
+document.querySelectorAll("[data-reletters]").forEach(function(b){
+  b.addEventListener("click", function(){
+    var t = $(b.dataset.reletters);
+    t.classList.remove("solta");
+    void t.offsetWidth;
+    setTimeout(function(){ t.classList.add("solta"); }, 40);
+  });
+});
+
+/* ==========================================================
+   3D E MAGNETISMO
+   ========================================================== */
+// cartão tilt
+(function(){
+  var demo = $("demo-tilt"), card = $("tilt-card"), brilho = $("tilt-brilho");
+  demo.addEventListener("pointermove", function(e){
+    var r = demo.getBoundingClientRect();
+    var nx = (e.clientX-r.left)/r.width - .5;   // -0.5 a 0.5
+    var ny = (e.clientY-r.top)/r.height - .5;
+    card.style.transform = "rotateY("+(nx*22)+"deg) rotateX("+(ny*-22)+"deg)";
+    brilho.style.setProperty("--gx", ((nx+.5)*100)+"%");
+    brilho.style.setProperty("--gy", ((ny+.5)*100)+"%");
+  });
+  demo.addEventListener("pointerleave", function(){
+    card.style.transition = "transform .6s var(--ease)";
+    card.style.transform = "";
+    setTimeout(function(){ card.style.transition = "transform .18s ease-out"; }, 620);
+  });
+})();
+
+// botão magnético com lerp
+(function(){
+  var demo = $("demo-mag"), btn = $("btn-mag");
+  var tx=0, ty=0, ax=0, ay=0, rodando=false;
+  function anima(){
+    ax += (tx-ax)*.14; ay += (ty-ay)*.14;
+    btn.style.transform = "translate("+ax+"px,"+ay+"px)";
+    if(Math.abs(tx-ax)+Math.abs(ty-ay) > .2 || tx || ty) requestAnimationFrame(anima);
+    else rodando = false;
+  }
+  demo.addEventListener("pointermove", function(e){
+    var r = btn.getBoundingClientRect();
+    var dx = e.clientX-(r.left+r.width/2), dy = e.clientY-(r.top+r.height/2);
+    var dist = Math.hypot(dx,dy);
+    if(dist < 130){ tx = dx*.35; ty = dy*.35; }
+    else { tx = 0; ty = 0; }
+    if(!rodando){ rodando = true; anima(); }
+  });
+  demo.addEventListener("pointerleave", function(){ tx=0; ty=0; if(!rodando){rodando=true;anima();} });
+})();
+})();
+</script>
+</body>
+</html>
