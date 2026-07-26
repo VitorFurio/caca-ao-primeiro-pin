@@ -349,6 +349,22 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 }
 
 /* ============================================================
+   D5 — O MENTOR (a névoa que o dedo limpa)
+   ============================================================ */
+.nevoa-area{ /* o céu nublado: só aqui a limpeza acontece */
+  position:relative;margin-top:20px;padding:26px 20px 30px;
+  border:1px dashed rgba(200,160,53,.28);border-radius:4px;
+  transition:border-color .4s;
+}
+.nevoa-area.pronta{border-color:transparent}
+#nevoa{
+  position:absolute;inset:0;width:100%;height:100%;
+  touch-action:none;border-radius:4px;
+  transition:opacity 1.4s ease;
+}
+.nevoa-area.pronta #nevoa{opacity:0;pointer-events:none}
+
+/* ============================================================
    O PRIMEIRO PIN — a recompensa, o ponto mais brilhante
    ============================================================ */
 #premio{position:relative}
@@ -443,10 +459,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <section class="desafio" id="proposito">
   <div class="wrap">
     <p class="historia">A <b>Caça ao Primeiro Pin</b> é a trilha de quem foi convidado a participar
-       do Rotaract: <b>quatro desafios</b> que apresentam o clube por dentro — as reuniões,
-       os treinamentos e os projetos. Ao completá-los, o clube vota o seu ingresso e você
+       do Rotaract: <b>cinco desafios</b> que apresentam o clube por dentro — as reuniões,
+       os treinamentos, os projetos e as pessoas. Ao completá-los, o clube vota o seu ingresso e você
        conquista o <b>primeiro pin</b>: o símbolo de que passou a fazer parte da <b>nossa família</b>.</p>
-    <p class="historia" style="margin-top:26px">A seguir, os seus <b>quatro objetivos</b> —
+    <p class="historia" style="margin-top:26px">A seguir, os seus <b>cinco objetivos</b> —
        cada um escondido de um jeito. Descobrir como revelá-los faz parte do desafio.
        <b>Boa caçada!</b></p>
   </div>
@@ -599,12 +615,33 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="morro fundo" data-par="0.35"></div>
   <div class="morro frente" data-par="0.7"></div>
 </div>
+<p class="verso">a obra está de pé. mas ninguém caminha sozinho…</p>
+
+<!-- ================= D5 · O MENTOR ================= -->
+<section class="desafio" id="d5">
+  <div class="wrap">
+    <div class="nevoa-area" id="nevoa-area">
+      <div class="d-nome">Desafio 05 - O Mentor</div>
+      <div class="d-desc">Escolha um associado para ser o seu <b>padrinho ou madrinha</b> no clube.</div>
+      <canvas id="nevoa" aria-hidden="true"></canvas>
+    </div>
+    <p class="historia apoio">O <b>padrinho ou madrinha</b> tem o papel de guiar você dentro do clube:
+       é quem responde às suas dúvidas, dá conselhos e orienta os seus primeiros passos no movimento.
+       Escolha alguém em quem você <b>confia</b>, que <b>admira</b> e com quem tem uma boa relação —
+       essa pessoa será a sua bússola no começo da caminhada.</p>
+  </div>
+</section>
+
+<div class="cenario" aria-hidden="true">
+  <div class="morro fundo" data-par="0.35"></div>
+  <div class="morro frente" data-par="0.7"></div>
+</div>
 <p class="verso">a recompensa da sua jornada te espera…</p>
 
 <!-- ================= O PRIMEIRO PIN ================= -->
 <section class="desafio" id="premio">
   <div class="wrap">
-    <p class="historia">Ao concluir os quatro desafios, você está <b>apto a ingressar como membro
+    <p class="historia">Ao concluir os cinco desafios, você está <b>apto a ingressar como membro
        do Rotaract Club de Jaraguá do Sul</b> — e a ganhar o seu <b>primeiro pin</b>.</p>
     <p class="historia" style="margin-top:26px">Esse é o momento de procurar o <b>DQA</b> e
        declarar o seu interesse de se associar ao clube. Será feita uma <b>avaliação da sua
@@ -828,6 +865,25 @@ var SONS={
     mg.gain.linearRampToValueAtTime(.22,t+.9);
     mg.gain.exponentialRampToValueAtTime(.0001,t+2.5);
     m.connect(bp); bp.connect(mg); mg.connect(masterGain); m.start(t); m.stop(t+2.6);
+  },
+  nevoa:function(c,t){ // varrendo as nuvens com a mão
+    var s=c.createBufferSource(); s.buffer=ruido(.5);
+    var f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=.45;
+    f.frequency.setValueAtTime(750,t);
+    f.frequency.exponentialRampToValueAtTime(320,t+.45);
+    var g=c.createGain(); envAud(g,t,.1,.2,.48);
+    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.52);
+  },
+  nevoaAbre:function(c,t){ // o céu abre: acorde arejado + brilho
+    [784,1046.5].forEach(function(fr,i){
+      var o=c.createOscillator(); o.type="sine"; o.frequency.value=fr;
+      var g=c.createGain(); envAud(g,t+i*.08,.05,.16,1.3);
+      o.connect(g); g.connect(masterGain); o.start(t+i*.08); o.stop(t+i*.08+1.4);
+    });
+    var s=c.createBufferSource(); s.buffer=ruido(.6);
+    var hp=c.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=4200;
+    var g2=c.createGain(); envAud(g2,t,.15,.1,.6);
+    s.connect(hp); hp.connect(g2); g2.connect(masterGain); s.start(t); s.stop(t+.66);
   },
   tinta:function(c,t){ // gota de tinta
     var o=c.createOscillator(); o.type="sine";
@@ -1413,6 +1469,101 @@ if(window.gsap && window.ScrollTrigger){
       requestAnimationFrame(tick);
     })();
   }
+})();
+
+/* ==========================================================
+   D5 — O MENTOR (a névoa que o dedo limpa)
+   ========================================================== */
+(function(){
+  var area=$("nevoa-area"),cv=$("nevoa"),ctx=cv.getContext("2d");
+  var dpr=Math.min(2,window.devicePixelRatio||1);
+  var W=0,H=0,limpo=false,tocouAlgo=false;
+  var ultSom=0,ultAmostra=0,px=null,py=null;
+
+  function pintar(){
+    var r=area.getBoundingClientRect();
+    W=r.width;H=r.height;
+    cv.width=Math.round(W*dpr);
+    cv.height=Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,"rgba(214,202,182,.97)");
+    g.addColorStop(1,"rgba(176,162,138,.97)");
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    // nuvens: manchas claras e sombras suaves
+    for(var i=0;i<26;i++){
+      var x=Math.random()*W,y=Math.random()*H,rr=30+Math.random()*70;
+      var rg=ctx.createRadialGradient(x,y,0,x,y,rr);
+      var claro=Math.random()>.5;
+      rg.addColorStop(0,claro?"rgba(240,231,212,.5)":"rgba(148,136,114,.32)");
+      rg.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=rg;
+      ctx.fillRect(x-rr,y-rr,rr*2,rr*2);
+    }
+  }
+  pintar();
+  // o layout assenta depois das fontes: repinta enquanto ninguém interagiu
+  addEventListener("load",function(){ if(!tocouAlgo&&!limpo) pintar(); });
+  addEventListener("resize",function(){ if(!tocouAlgo&&!limpo) pintar(); });
+
+  function esfrega(x,y){
+    ctx.globalCompositeOperation="destination-out";
+    var passos=1;
+    if(px!==null) passos=Math.max(1,Math.ceil(Math.hypot(x-px,y-py)/10));
+    for(var i=1;i<=passos;i++){
+      var ix=(px===null)?x:px+(x-px)*i/passos;
+      var iy=(py===null)?y:py+(y-py)*i/passos;
+      var b=ctx.createRadialGradient(ix,iy,0,ix,iy,38);
+      b.addColorStop(0,"rgba(0,0,0,1)");
+      b.addColorStop(.6,"rgba(0,0,0,.65)");
+      b.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=b;
+      ctx.beginPath();ctx.arc(ix,iy,38,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalCompositeOperation="source-over";
+    px=x;py=y;
+    var agora=performance.now();
+    if(agora-ultSom>340){ ultSom=agora; tocar("nevoa"); }
+    if(agora-ultAmostra>420){ ultAmostra=agora; medir(); }
+    // garante uma medição FINAL depois da última esfregada
+    clearTimeout(medidaFinal);
+    medidaFinal=setTimeout(medir,320);
+  }
+  var medidaFinal=null;
+  function medir(){
+    if(limpo) return;
+    try{
+      var d=ctx.getImageData(0,0,cv.width,cv.height).data;
+      var tot=0,vaz=0;
+      for(var y=0;y<cv.height;y+=40){
+        for(var x=0;x<cv.width;x+=40){
+          tot++;
+          if(d[(y*cv.width+x)*4+3]<60) vaz++;
+        }
+      }
+      if(tot&&vaz/tot>.55) revelar();
+    }catch(e){}
+  }
+  function revelar(){
+    limpo=true;
+    area.classList.add("pronta");
+    tocar("nevoaAbre");
+    vibrar([10,30,14]);
+  }
+  cv.addEventListener("pointerdown",function(e){
+    armaSom();
+    tocouAlgo=true;
+    try{ cv.setPointerCapture(e.pointerId); }catch(_e){}
+    var r=cv.getBoundingClientRect();
+    px=py=null;
+    esfrega(e.clientX-r.left,e.clientY-r.top);
+  });
+  cv.addEventListener("pointermove",function(e){
+    var r=cv.getBoundingClientRect();
+    esfrega(e.clientX-r.left,e.clientY-r.top);
+  },{passive:true});
+  cv.addEventListener("pointerup",function(){ px=py=null; medir(); });
+  cv.addEventListener("pointercancel",function(){ px=py=null; medir(); });
 })();
 
 /* ==========================================================
