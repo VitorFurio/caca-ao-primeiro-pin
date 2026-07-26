@@ -1260,16 +1260,51 @@ if(window.gsap && window.ScrollTrigger){
       return t;
     }
     var matLados=new THREE.MeshStandardMaterial({color:0xDCCFA3,metalness:.95,roughness:.26});
-    function fazPlaca(tex){
+    /* corpo dourado liso + uma placa fina POR FACE, cada uma com sua arte
+       voltada para fora — arquitetura simples, sem depender das tampas */
+    function fazCorpo(){
       var geo=new THREE.ExtrudeGeometry(
         shapePlaca(PW-BISEL*2,PH-BISEL*2,RAIO),
         {depth:PROF,bevelEnabled:true,bevelThickness:BISEL,bevelSize:BISEL,bevelSegments:4,curveSegments:24}
       );
       geo.center();
-      return new THREE.Mesh(geo,[new THREE.MeshStandardMaterial({map:tex,metalness:.9,roughness:.32}),matLados]);
+      return new THREE.Mesh(geo,matLados);
+    }
+    function placaFace(tex,z,vira){
+      var geo=new THREE.ExtrudeGeometry(
+        shapePlaca(PW-BISEL*2-.02,PH-BISEL*2-.02,RAIO),
+        {depth:.01,bevelEnabled:false,curveSegments:24}
+      );
+      geo.center();
+      var m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,metalness:.9,roughness:.33}));
+      if(vira) m.rotation.y=Math.PI;
+      m.position.z=z;
+      return m;
     }
     var pin=new THREE.Group();
     scene.add(pin);
+    // roda rotária desenhada à mão: 24 dentes, 6 raios, cubo — garante a
+    // engrenagem no pin mesmo se o PNG do logo não carregar
+    function rodaRotaria(x,cx,cy,R,cor){
+      x.save();x.translate(cx,cy);x.fillStyle=cor;x.strokeStyle=cor;
+      for(var i=0;i<24;i++){
+        x.save();x.rotate(i/24*Math.PI*2);
+        x.fillRect(-R*.055,-R,R*.11,R*.17);
+        x.restore();
+      }
+      x.lineWidth=R*.15;x.beginPath();x.arc(0,0,R*.78,0,Math.PI*2);x.stroke();
+      x.lineWidth=R*.09;x.beginPath();x.arc(0,0,R*.58,0,Math.PI*2);x.stroke();
+      x.lineWidth=R*.12;
+      for(var j=0;j<6;j++){
+        var b=j/6*Math.PI*2+Math.PI/6;
+        x.beginPath();
+        x.moveTo(Math.cos(b)*R*.16,Math.sin(b)*R*.16);
+        x.lineTo(Math.cos(b)*R*.58,Math.sin(b)*R*.58);
+        x.stroke();
+      }
+      x.lineWidth=R*.09;x.beginPath();x.arc(0,0,R*.17,0,Math.PI*2);x.stroke();
+      x.restore();
+    }
     var logo=new Image();
     logo.onload=logo.onerror=function(){
       var ok=logo.naturalWidth>0;
@@ -1279,10 +1314,12 @@ if(window.gsap && window.ScrollTrigger){
           if(lh>h*.82){lh=h*.82;lw=lh*(logo.naturalWidth/logo.naturalHeight);}
           x.drawImage(logo,(w-lw)/2,(h-lh)/2,lw,lh);
         } else {
+          // reserva fiel ao logo: wordmark + roda rotária
           x.fillStyle="#C10F45";
-          x.font="700 "+Math.round(h*.42)+"px 'Futura','Avenir Next',sans-serif";
-          x.textAlign="center";x.textBaseline="middle";
-          x.fillText("Rotaract",w/2,h/2);
+          x.font="700 "+Math.round(h*.30)+"px 'Futura','Avenir Next',sans-serif";
+          x.textAlign="left";x.textBaseline="middle";
+          x.fillText("Rotaract",w*.07,h*.5);
+          rodaRotaria(x,w*.82,h*.5,h*.29,"#C10F45");
         }
       });
       var verso=canvasOuro(function(x,w,h){
@@ -1296,18 +1333,11 @@ if(window.gsap && window.ScrollTrigger){
         x.fillStyle="rgba(122,90,26,.75)";
         x.fillText("C A Ç A   A O   P R I M E I R O   P I N",w/2,h*.76);
       });
-      pin.add(fazPlaca(frente));
-      var geoV=new THREE.ExtrudeGeometry(
-        shapePlaca(PW-BISEL*2-.02,PH-BISEL*2-.02,RAIO),
-        {depth:.01,bevelEnabled:false,curveSegments:24}
-      );
-      geoV.center();
-      var mV=new THREE.Mesh(geoV,new THREE.MeshStandardMaterial({map:verso,metalness:.9,roughness:.38}));
-      mV.rotation.y=Math.PI;
-      mV.position.z=-(PROF/2+BISEL+.006);
-      pin.add(mV);
+      pin.add(fazCorpo());
+      pin.add(placaFace(frente, (PROF/2+BISEL+.006), false));
+      pin.add(placaFace(verso, -(PROF/2+BISEL+.006), true));
     };
-    logo.src="images/Rotaract - Logo Cranberry Sem Fundo (centralizado).png";
+    logo.src="images/logo-rotaract.png";
 
     scene.add(new THREE.AmbientLight(0x2e2312,.9));
     var luz=new THREE.DirectionalLight(0xFFF9E8,1.15);
