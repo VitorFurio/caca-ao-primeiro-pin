@@ -632,6 +632,9 @@ function audio(){
     comp.connect(actx.destination);
   }
   if(actx.state==="suspended") actx.resume();
+  actx.onstatechange=function(){
+    if(!document.hidden && actx && actx.state!=="running") insistirRetomada();
+  };
   return actx;
 }
 function ligarSom(liga){
@@ -646,19 +649,41 @@ function armaSom(){
     iniciarMusica();   // a música tema nasce com o primeiro toque
   }
 }
-/* som sempre ativo e à prova de silenciamentos do iOS:
-   - qualquer toque arma e RE-ACORDA o contexto se ele foi suspenso
-   - voltar de segundo plano também re-acorda */
+/* som (e música) sempre ativos e à prova de silenciamentos do iOS:
+   ao voltar de outro app, um retomador INSISTE em reativar o áudio —
+   e se o sistema tiver fechado o contexto, reconstrói o motor e a música */
+function retomarAudio(){
+  if(!somLigado) return;
+  if(actx && actx.state==="closed"){
+    actx=null; masterGain=null;
+    musica.ligada=false;
+    ligarSom(true);
+    iniciarMusica();
+    return;
+  }
+  if(actx && actx.state!=="running") actx.resume().catch(function(){});
+}
+var retomadorTimer=null;
+function insistirRetomada(){
+  clearInterval(retomadorTimer);
+  retomarAudio();
+  var tent=0;
+  retomadorTimer=setInterval(function(){
+    tent++;
+    if(document.hidden || !somLigado || (actx && actx.state==="running") || tent>20){
+      clearInterval(retomadorTimer);
+      return;
+    }
+    retomarAudio();
+  },500);
+}
 document.addEventListener("pointerdown",function(){
   armaSom();
-  if(actx && actx.state==="suspended") actx.resume();
+  retomarAudio();
 },{passive:true});
-document.addEventListener("visibilitychange",function(){
-  if(!document.hidden && actx && somLigado) actx.resume();
-});
-window.addEventListener("pageshow",function(){
-  if(actx && somLigado) actx.resume();
-});
+document.addEventListener("visibilitychange",function(){ if(!document.hidden) insistirRetomada(); });
+window.addEventListener("pageshow",insistirRetomada);
+window.addEventListener("focus",insistirRetomada);
 /* o cintilar de metal segue o dedo pelo app inteiro */
 (function(){
   var bg=$("brilho-global");
@@ -861,7 +886,8 @@ function iniciarMusica(){
   dl.connect(musica.g);
   musica.eco=dl;
   musica.prox=c.currentTime+.1;
-  setInterval(agendarMusica,400);
+  if(musica.timer) clearInterval(musica.timer);
+  musica.timer=setInterval(agendarMusica,400);
 }
 function padAcorde(t,i){
   var c=actx;
