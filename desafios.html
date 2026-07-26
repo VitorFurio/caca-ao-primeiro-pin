@@ -450,7 +450,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <!-- ================= D1 · O PERÍODO ================= -->
 <section class="desafio" id="d1">
   <div class="wrap">
-    <div style="position:relative">
+    <div style="position:relative" id="vela-area">
       <div class="vela-fantasma" aria-hidden="true">
         <div class="d-nome">Desafio 01 - O Período</div>
         <div class="d-desc">Participe das reuniões do Rotaract por um período mínimo de 90 dias.</div>
@@ -1116,8 +1116,9 @@ if(window.gsap && window.ScrollTrigger){
   }
   sec.addEventListener("pointermove",function(e){ mira(e.clientX,e.clientY); },{passive:true});
   sec.addEventListener("pointerdown",function(e){ mira(e.clientX,e.clientY); },{passive:true});
-  // a revelação definitiva (e seu som de fogo) só acontece no toque
-  soToque(sec,function(e){
+  // a revelação definitiva (e seu som de fogo) só acontece no toque —
+  // e SÓ dentro da região da mensagem, como nos demais desafios
+  soToque($("vela-area"),function(e){
     armaSom(); tocar("fogo");
     if(!aceso){
       aceso=true;
