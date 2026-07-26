@@ -154,6 +154,38 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   100%{transform:translateY(148px) scale(.55);opacity:0}
 }
 
+/* aviso de som — a jornada tem trilha sonora */
+.aviso-som{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  margin:clamp(130px,28svh,280px) auto;padding:0 28px;text-align:center;
+  max-width:34ch;
+}
+.aviso-som svg{
+  width:36px;height:36px;stroke:var(--gold-lit);
+  filter:drop-shadow(0 0 12px rgba(239,206,121,.5));
+  animation:pulsaSom 2.4s ease-in-out infinite;
+}
+@keyframes pulsaSom{
+  0%,100%{opacity:.72;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.1)}
+}
+.aviso-som p{
+  font-family:var(--util);font-size:10px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--parch-3);line-height:2.2;
+}
+.aviso-som b{color:var(--gold-lit);font-weight:400}
+
+/* pin de emergência, caso o 3D não carregue */
+.pin-estatico{
+  position:absolute;left:50%;top:50%;width:78%;aspect-ratio:2.48;
+  transform:translate(-50%,-50%);
+  background:linear-gradient(160deg,#F8F1DC,#EADDB6 45%,#CFC091 80%,#B0A070);
+  border-radius:12px;
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,252,235,.6);
+  display:flex;align-items:center;justify-content:center;
+}
+.pin-estatico img{width:86%;display:block}
+
 /* ============================================================
    D1 — O PERÍODO
    ============================================================ */
@@ -380,6 +412,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
     <div class="seta">comece a andar<span class="fio"></span></div>
   </div>
 </header>
+
+<div class="aviso-som">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="rgba(239,206,121,.14)"/>
+    <path d="M16.5 8.5a5 5 0 0 1 0 7"/>
+    <path d="M19 6a8.5 8.5 0 0 1 0 12"/>
+  </svg>
+  <p><b>Ative o som e aumente o volume</b> do seu celular — esta jornada tem trilha sonora.</p>
+</div>
 
 <div class="cenario" aria-hidden="true">
   <div class="morro fundo" data-par="0.35"></div>
@@ -647,6 +688,7 @@ function armaSom(){
     somArmado=true;
     ligarSom(true);
     iniciarMusica();   // a música tema nasce com o primeiro toque
+    if(window.__vitoriaPendente) window.__vitoriaPendente();
   }
 }
 /* som (e música) sempre ativos e à prova de silenciamentos do iOS:
@@ -1035,7 +1077,7 @@ aoRolarGlobal();
    ========================================================== */
 if(window.gsap && window.ScrollTrigger){
   gsap.registerPlugin(ScrollTrigger);
-  document.querySelectorAll(".desafio .wrap, .verso").forEach(function(el){
+  document.querySelectorAll(".desafio .wrap, .verso, .aviso-som").forEach(function(el){
     gsap.fromTo(el,{opacity:0,y:36},{
       opacity:1,y:0,ease:"none",
       scrollTrigger:{trigger:el,start:"top 92%",end:"top 60%",scrub:.4}
@@ -1107,7 +1149,7 @@ if(window.gsap && window.ScrollTrigger){
   env.style.willChange="transform";
   env.addEventListener("pointerdown",function(e){
     if(rasgada) return;
-    env.setPointerCapture(e.pointerId);
+    try{ env.setPointerCapture(e.pointerId); }catch(_e){}
     drag={id:e.pointerId,x0:e.clientX,t0:performance.now()};
     env.style.transition="none";
     armaSom();
@@ -1136,7 +1178,14 @@ if(window.gsap && window.ScrollTrigger){
     }
   }
   env.addEventListener("pointerup",soltaEnv);
-  env.addEventListener("pointercancel",soltaEnv);
+  // cancelamento (a rolagem tomou o gesto) NUNCA conta como saque:
+  // o envelope apenas volta para o lugar
+  env.addEventListener("pointercancel",function(e){
+    if(!drag||e.pointerId!==drag.id) return;
+    drag=null;
+    env.style.transition="transform .35s cubic-bezier(.34,1.56,.64,1)";
+    env.style.transform="translateX(0)";
+  });
   soToque(carta,function(e){
     if(!rasgada) return;
     armaSom();
@@ -1362,28 +1411,48 @@ if(window.gsap && window.ScrollTrigger){
         var s=document.createElement("script");
         s.src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js";
         s.onload=montarPin;
+        s.onerror=pinEstatico;   // sem 3D? o pin aparece mesmo assim
         document.body.appendChild(s);
       }
     });
   },{rootMargin:"1600px 0px"});
   io.observe($("premio"));
 
-  /* o som de vitória soa quando a pessoa CHEGA ao pin */
-  var vitoriaTocada=false;
+  /* o som de vitória soa quando a pessoa CHEGA ao pin.
+     Se o som ainda não foi armado (nenhum toque até aqui), a vitória
+     fica PENDENTE e dispara no primeiro toque — nunca se perde muda. */
+  var vitoriaTocada=false,pinVisivel=false;
+  function celebrar(){
+    if(vitoriaTocada||!pinVisivel) return;
+    if(!somArmado){ window.__vitoriaPendente=celebrar; return; }
+    vitoriaTocada=true;
+    window.__vitoriaPendente=null;
+    tocar("vitoria");
+    vibrar([15,50,20,50,90]);
+  }
   var ioVitoria=new IntersectionObserver(function(es){
     es.forEach(function(en){
-      if(en.isIntersecting && !vitoriaTocada){
-        vitoriaTocada=true;
-        ioVitoria.disconnect();
-        tocar("vitoria");
-        vibrar([15,50,20,50,90]);
-      }
+      pinVisivel=en.isIntersecting;
+      if(en.isIntersecting) celebrar();
     });
   },{threshold:.35});
   ioVitoria.observe($("pin-palco"));
 
+  /* reserva: se o Three.js não carregar (rede), mostra a placa estática */
+  function pinEstatico(){
+    var palco=$("pin-palco");
+    var d=document.createElement("div");
+    d.className="pin-estatico";
+    var img=document.createElement("img");
+    img.src="images/logo-rotaract.png";
+    img.alt="O primeiro pin do Rotaract";
+    img.onerror=function(){ img.remove(); };
+    d.appendChild(img);
+    palco.appendChild(d);
+  }
+
   function montarPin(){
-    if(!window.THREE) return;
+    if(!window.THREE){ pinEstatico(); return; }
     var palco=$("pin-palco"),cv=$("pin-cena");
     var W=palco.clientWidth,H=palco.clientHeight;
     var renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
