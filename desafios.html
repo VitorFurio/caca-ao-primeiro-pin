@@ -70,7 +70,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 .wrap{max-width:640px;margin:0 auto;padding:0 clamp(22px,6vw,40px)}
 .desafio{
   position:relative;
-  padding:clamp(160px,28svh,300px) 0;
+  padding:clamp(300px,55svh,620px) 0;
   touch-action:pan-y;
 }
 .desafio .wrap{position:relative;z-index:2}
@@ -86,11 +86,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 }
 .historia{color:var(--parch-3);line-height:1.85;font-size:clamp(14px,3.7vw,16px);max-width:54ch}
 .historia b{color:var(--parch-1)}
-.apoio{margin-top:26px}
-.dica{
-  font-family:var(--util);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;
-  color:#7A6449;margin-top:18px;line-height:2;
-}
+/* a explicação mora estrada abaixo — mais de uma tela de caminhada após o desafio */
+.apoio{margin-top:clamp(520px,115svh,950px)}
 
 /* O OBJETIVO — cada desafio o revela com seu próprio efeito */
 .obj-tag{
@@ -120,7 +117,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   font-family:var(--hand);
   font-size:clamp(17px,4.6vw,22px);color:var(--parch-3);opacity:.85;text-align:center;
   max-width:30ch;line-height:1.6;
-  margin:clamp(100px,22svh,220px) auto;
+  margin:clamp(240px,50svh,520px) auto;
   padding:0 24px;
 }
 
@@ -184,7 +181,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   color:var(--ink);touch-action:pan-y;
 }
 .envelope .lacre-mini{width:58px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.4))}
-.envelope .env-dica{font-family:var(--util);font-size:9px;letter-spacing:.24em;text-transform:uppercase;opacity:.6}
 .tinta-mark{position:absolute;pointer-events:none;transform:translate(-50%,-50%);z-index:5;
   transition:opacity 1.4s ease .9s}
 .tinta-mark.some{opacity:0}
@@ -350,10 +346,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
        quatro desafios, vividos ao longo de cerca de <b>90 dias</b>, que apresentam o clube por
        dentro — as reuniões, os treinamentos e os projetos. Ao completá-los, o clube vota o seu
        ingresso e você conquista o <b>primeiro pin</b>: o símbolo de que passou a fazer parte.</p>
-    <p>A seguir, os seus <b>quatro objetivos</b>. Cada um se revela de um jeito:
-       ilumine o primeiro, rasgue o segundo, forje o terceiro e erga o quarto.
+    <p>A seguir, os seus <b>quatro objetivos</b> — cada um escondido de um jeito.
+       Descobrir como revelá-los faz parte da caçada.
        A estrada começa no escuro e termina no ouro.</p>
-    <div class="seta">desça para começar</div>
+    <div class="seta">comece a andar</div>
   </div>
 </header>
 
@@ -362,12 +358,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap">
     <div class="rotulo">Desafio 01 · O Período</div>
     <h2>Toda caçada<br>começa no escuro</h2>
-    <div class="obj-tag">Ilumine para revelar o objetivo</div>
-    <div style="position:relative">
+    <div style="position:relative;margin-top:26px">
       <div class="vela-fantasma" aria-hidden="true">Participe das reuniões por, no mínimo, 90 dias.</div>
       <div class="vela-texto" id="vela-texto">Participe das reuniões por, no mínimo, <b>90 dias</b>.</div>
     </div>
-    <div class="dica" id="vela-dica">deslize o dedo pela escuridão · toque para acender de vez</div>
     <p class="historia apoio">O Rotaract exige <b>compromisso e frequência</b>. Durante esses 90 dias,
        viva o clube por dentro: as reuniões são onde os projetos nascem, as decisões são tomadas e
        as amizades se formam — tempo de sobra para descobrir se é isso que você busca. E se você
@@ -386,17 +380,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap">
     <div class="rotulo">Desafio 02 · A Constância</div>
     <h2>O clube te escreveu<br>uma carta</h2>
-    <div class="obj-tag">Rasgue o envelope para revelar o objetivo</div>
     <div class="carta-area" id="carta-area">
       <div class="carta" id="carta">
         <div class="selo-topo">Rotaract Club de Jaraguá do Sul · objetivo</div>
         <div class="frase frase-obj">Atinja <b>60% de frequência</b> no período.</div>
         <div class="frase" style="font-size:clamp(13px,3.6vw,16px)">Cada presença é uma marca sua na história do clube.</div>
-        <div class="assin">— toque na carta: sua marca aparece, o papel a absorve</div>
       </div>
       <div class="envelope" id="envelope">
         <svg class="lacre-mini" viewBox="-60 -60 120 120"><use href="#lacre"/></svg>
-        <div class="env-dica">← arraste para rasgar</div>
       </div>
     </div>
     <p class="historia apoio">Compromisso não se prova no impulso — se prova no <b>ritmo</b>.
@@ -419,7 +410,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap" id="forja-stage" style="text-align:center">
     <div class="rotulo" style="justify-content:center">Desafio 03 · O Treino</div>
     <h2>O objetivo está<br>no ferro bruto</h2>
-    <div class="obj-tag" style="justify-content:center">Golpeie a bigorna para forjar o objetivo</div>
     <div class="forja-alvo" id="forja-alvo">
       <div class="forja-msg" id="forja-msg" aria-label="Participe de, no mínimo, 1 treinamento."></div>
       <svg class="forja-simbolo" id="forja-simbolo" viewBox="-50 -50 100 100" aria-hidden="true">
@@ -432,7 +422,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
         <path d="M30 -2 36 -8"/><path d="M28 8 35 5"/>
       </svg>
     </div>
-    <div class="dica" id="forja-dica">toque na bigorna para golpear — 3 golpes forjam o objetivo</div>
     <p class="historia apoio" style="margin-left:auto;margin-right:auto">É preciso treinar para melhorar —
        <b>a busca pelo conhecimento leva à excelência</b>. São válidos os treinamentos promovidos pelo
        <b>distrito</b> e pelo <b>clube</b>; pergunte aos associados quais vêm por aí. Cada treinamento mostra
@@ -455,7 +444,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap">
     <div class="rotulo">Desafio 04 · A Execução</div>
     <h2>Nada ensina como<br>pôr a mão na massa</h2>
-    <div class="obj-tag" style="justify-content:center">Erga a obra para gravar o objetivo</div>
     <div class="obra-alvo" id="obra-alvo">
       <svg id="monumento" viewBox="0 0 320 214" aria-hidden="true">
         <g class="peca" id="pc-base">
@@ -484,7 +472,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
       </svg>
     </div>
     <div class="gravacao" id="gravacao">Participe de, no mínimo, <b>3 projetos ou ações</b>.</div>
-    <div class="dica" id="obra-dica">toque no canteiro: cada projeto ergue uma parte — 3 toques revelam o objetivo</div>
     <p class="historia apoio" style="margin-left:auto;margin-right:auto">Nada como <b>pôr a mão na massa</b>
        para aprender. O Rotaract impacta o mundo por meio dos seus <b>projetos</b> — e é participando que
        se entende como eles funcionam: o planejamento, a execução e o resultado que fica para a comunidade.
@@ -751,7 +738,6 @@ if(window.gsap && window.ScrollTrigger){
       aceso=true;
       move(e.clientX,e.clientY);
       raioAlvo=2400;
-      $("vela-dica").textContent="as palavras estão acesas — este é o seu primeiro objetivo";
     }
   });
   (function treme(){
@@ -821,7 +807,7 @@ if(window.gsap && window.ScrollTrigger){
    D3 — O TREINO (forja concentrada na bigorna)
    ========================================================== */
 (function(){
-  var sec=$("d3"),brilho=$("brilho-metal"),stage=$("forja-stage"),dica=$("forja-dica"),alvo=$("forja-alvo");
+  var sec=$("d3"),brilho=$("brilho-metal"),stage=$("forja-stage"),alvo=$("forja-alvo");
   var PEDACOS=[
     "Participe ",
     "de, no mínimo, ",
@@ -890,12 +876,7 @@ if(window.gsap && window.ScrollTrigger){
       var er=alvoTxt.getBoundingClientRect();
       faiscas(er.left-r.left+er.width/2, er.top-r.top+er.height/2, 16);
       golpe++;
-      if(golpe<els.length){
-        dica.textContent="continue golpeando a bigorna — "+(els.length-golpe)+(els.length-golpe>1?" golpes":" golpe");
-      } else {
-        dica.textContent="objetivo forjado — cada golpe valeu";
-        alvo.classList.add("pronta");
-      }
+      if(golpe>=els.length) alvo.classList.add("pronta");
     } else {
       faiscas(x,y,14);
     }
@@ -906,7 +887,7 @@ if(window.gsap && window.ScrollTrigger){
    D4 — A EXECUÇÃO (obra concentrada no canteiro)
    ========================================================== */
 (function(){
-  var sec=$("d4"),noite=$("noite"),dica=$("obra-dica"),alvo=$("obra-alvo");
+  var sec=$("d4"),noite=$("noite"),alvo=$("obra-alvo");
   var grupos=[["pc-base","pc-ext"],["pc-int","pc-arq"],["pc-front"]].map(function(g){ return g.map($); });
   var todas=[];
   grupos.forEach(function(g){ todas=todas.concat(g); });
@@ -996,11 +977,7 @@ if(window.gsap && window.ScrollTrigger){
       tocar("pedra");
       vibrar(10);
       posta++;
-      if(posta<grupos.length){
-        var falta=grupos.length-posta;
-        dica.textContent="cada projeto ergue uma parte da obra — "+(falta>1?falta+" projetos restantes":"1 projeto restante");
-      } else {
-        dica.textContent="a obra está de pé — toque no canteiro e celebre";
+      if(posta>=grupos.length){
         alvo.classList.add("pronta");
         $("gravacao").classList.add("aparece");
         tocar("fanfarra");
