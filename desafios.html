@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0B0A09">
-<title>Os Quatro Desafios — Caça ao Primeiro Pin</title>
+<title>Caça ao Primeiro Pin — Rotaract Club de Jaraguá do Sul</title>
 <style>
 /* ============================================================
    TOKENS
@@ -30,10 +30,18 @@
   --brasa-glow:0;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{
+  background:var(--void);
+  /* impede o Safari de inflar textos de forma desigual no zoom out */
+  -webkit-text-size-adjust:100%;text-size-adjust:100%;
+  /* nada vaza na horizontal: cenários largos são recortados na raiz */
+  overflow-x:hidden;overflow-x:clip;
+}
 body{
   background:var(--void);
   color:var(--parch-1);font-family:var(--body);
-  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;overflow-x:clip;
 }
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
@@ -53,16 +61,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 #trilha{position:fixed;left:max(10px,env(safe-area-inset-left));top:0;bottom:0;width:3px;z-index:40;background:rgba(239,221,184,.06)}
 #trilha i{display:block;width:100%;height:0;background:linear-gradient(var(--wax),var(--gold));box-shadow:0 0 10px rgba(200,160,53,.5)}
 
-/* som — mudo sempre à mão */
-#som-master{
-  position:fixed;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:950;
-  font-family:var(--util);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;
-  background:rgba(20,17,16,.85);border:1px solid rgba(239,221,184,.25);color:var(--parch-1);
-  padding:10px 14px;border-radius:30px;
-  display:flex;align-items:center;gap:7px;
-}
-#som-master .led{width:6px;height:6px;border-radius:50%;background:var(--ink-soft);transition:background .3s,box-shadow .3s}
-#som-master.ligado .led{background:var(--gold-lit);box-shadow:0 0 8px var(--gold)}
 
 /* ============================================================
    FLUXO
@@ -117,10 +115,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
    ============================================================ */
 #hero{min-height:96svh;display:flex;align-items:center;text-align:center;padding:70px 0}
 #hero .wrap{display:flex;flex-direction:column;align-items:center}
-#hero .kicker{font-family:var(--util);font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
-#hero h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,9.6vw,60px);line-height:1.12;margin-bottom:22px}
-#hero p{color:var(--parch-3);line-height:1.85;max-width:52ch;margin-bottom:18px;font-size:clamp(14px,3.8vw,16px)}
-#hero p b{color:var(--parch-1)}
+#hero .kicker{font-family:var(--util);font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:26px}
+#hero h1{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(46px,13vw,88px);line-height:1.08;margin-bottom:22px;
+  text-shadow:0 0 34px rgba(239,206,121,.22);
+}
+.chamado-sub{
+  font-family:var(--hand);font-size:clamp(18px,5vw,25px);
+  color:var(--parch-3);margin-bottom:36px;line-height:1.5;
+}
 .seta{
   font-family:var(--util);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#7A6449;
   display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:14px;
@@ -320,7 +324,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <div id="mundo"></div>
 <canvas id="brasas"></canvas>
 <div id="trilha"><i id="trilha-fill"></i></div>
-<button id="som-master" aria-label="Ligar ou desligar o som"><span class="led"></span><span id="som-master-txt">som off</span></button>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="lacre" viewBox="-60 -60 120 120">
@@ -344,21 +347,41 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   </symbol>
 </svg>
 
-<!-- ================= HERO ================= -->
+<!-- ================= O CHAMADO ================= -->
 <header id="hero">
   <div class="wrap">
-    <div class="kicker">Caça ao Primeiro Pin · protótipo</div>
-    <h1>Quatro desafios<br>te separam do pin</h1>
-    <p>A <b>Caça ao Primeiro Pin</b> é a trilha de quem foi convidado a conhecer o Rotaract:
-       quatro desafios, vividos ao longo de cerca de <b>90 dias</b>, que apresentam o clube por
-       dentro — as reuniões, os treinamentos e os projetos. Ao completá-los, o clube vota o seu
-       ingresso e você conquista o <b>primeiro pin</b>: o símbolo de que passou a fazer parte.</p>
-    <p>A seguir, os seus <b>quatro objetivos</b> — cada um escondido de um jeito.
-       Descobrir como revelá-los faz parte da caçada.
-       A estrada começa no escuro e termina no ouro.</p>
+    <div class="kicker">Rotaract Club de Jaraguá do Sul</div>
+    <h1>Você foi<br>desafiado.</h1>
+    <p class="chamado-sub">Sua jornada no Rotaract começa aqui.</p>
     <div class="seta">comece a andar</div>
   </div>
 </header>
+
+<div class="cenario" aria-hidden="true">
+  <div class="morro fundo" data-par="0.35"></div>
+  <div class="morro frente" data-par="0.7"></div>
+</div>
+<p class="verso">toda grande jornada começa com um convite…</p>
+
+<!-- ================= O PROPÓSITO ================= -->
+<section class="desafio" id="proposito">
+  <div class="wrap">
+    <p class="historia">A <b>Caça ao Primeiro Pin</b> é a trilha de quem foi convidado a conhecer
+       o Rotaract: <b>quatro desafios</b>, vividos ao longo de cerca de <b>90 dias</b>, que
+       apresentam o clube por dentro — as reuniões, os treinamentos e os projetos.
+       Ao completá-los, o clube vota o seu ingresso e você conquista o <b>primeiro pin</b>:
+       o símbolo de que passou a fazer parte.</p>
+    <p class="historia" style="margin-top:26px">A seguir, os seus <b>quatro objetivos</b> —
+       cada um escondido de um jeito. Descobrir como revelá-los faz parte da caçada.
+       A estrada começa no escuro e termina no ouro.</p>
+  </div>
+</section>
+
+<div class="cenario" aria-hidden="true">
+  <div class="morro fundo" data-par="0.35"></div>
+  <div class="morro frente" data-par="0.7"></div>
+</div>
+<p class="verso">o escuro adiante guarda o primeiro desafio…</p>
 
 <!-- ================= D1 · O PERÍODO ================= -->
 <section class="desafio" id="d1">
@@ -585,11 +608,10 @@ function ligarSom(liga){
   somLigado=liga;
   var c=audio();
   if(c) masterGain.gain.setTargetAtTime(liga?0.6:0,c.currentTime,.05);
-  $("som-master").classList.toggle("ligado",liga);
-  $("som-master-txt").textContent=liga?"som on":"som off";
 }
 function armaSom(){ if(!somArmado){ somArmado=true; ligarSom(true); } }
-$("som-master").addEventListener("click",function(){ somArmado=true; ligarSom(!somLigado); });
+/* som sempre ativo: o primeiro toque em qualquer lugar já o desperta */
+document.addEventListener("pointerdown",function(){ armaSom(); },{once:true,passive:true});
 function ruido(dur){
   var sr=actx.sampleRate,b=actx.createBuffer(1,Math.ceil(sr*dur),sr),d=b.getChannelData(0),i;
   for(i=0;i<d.length;i++)d[i]=Math.random()*2-1;
