@@ -38,7 +38,7 @@ body{
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
 /* ============================================================
-   FUNDO VIVO — só ele é fixo; todo conteúdo flui
+   FUNDO VIVO
    ============================================================ */
 #mundo{
   position:fixed;inset:0;z-index:-3;
@@ -53,13 +53,24 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 #trilha{position:fixed;left:max(10px,env(safe-area-inset-left));top:0;bottom:0;width:3px;z-index:40;background:rgba(239,221,184,.06)}
 #trilha i{display:block;width:100%;height:0;background:linear-gradient(var(--wax),var(--gold));box-shadow:0 0 10px rgba(200,160,53,.5)}
 
+/* som — mudo sempre à mão */
+#som-master{
+  position:fixed;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:950;
+  font-family:var(--util);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;
+  background:rgba(20,17,16,.85);border:1px solid rgba(239,221,184,.25);color:var(--parch-1);
+  padding:10px 14px;border-radius:30px;
+  display:flex;align-items:center;gap:7px;
+}
+#som-master .led{width:6px;height:6px;border-radius:50%;background:var(--ink-soft);transition:background .3s,box-shadow .3s}
+#som-master.ligado .led{background:var(--gold-lit);box-shadow:0 0 8px var(--gold)}
+
 /* ============================================================
-   FLUXO — nada preso, tudo desce com o usuário
+   FLUXO
    ============================================================ */
 .wrap{max-width:640px;margin:0 auto;padding:0 clamp(22px,6vw,40px)}
 .desafio{
   position:relative;
-  padding:clamp(120px,22svh,220px) 0;
+  padding:clamp(160px,28svh,300px) 0;
   touch-action:pan-y;
 }
 .desafio .wrap{position:relative;z-index:2}
@@ -73,14 +84,32 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   font-size:clamp(28px,7.4vw,46px);line-height:1.18;letter-spacing:.02em;
   margin-bottom:14px;text-wrap:balance;
 }
-.desafio .historia{color:var(--parch-3);line-height:1.8;font-size:clamp(14.5px,3.9vw,16.5px);max-width:52ch}
-.desafio .historia b{color:var(--parch-1)}
+.historia{color:var(--parch-3);line-height:1.85;font-size:clamp(14px,3.7vw,16px);max-width:54ch}
+.historia b{color:var(--parch-1)}
+.apoio{margin-top:26px}
 .dica{
   font-family:var(--util);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;
   color:#7A6449;margin-top:18px;line-height:2;
 }
 
-/* cenário que passa por trás — paisagem, não fronteira */
+/* O OBJETIVO — sempre em primeiro plano, nada compete com ele */
+.objetivo{
+  margin:20px 0 10px;padding:16px 18px 15px;
+  border-left:3px solid var(--gold);
+  background:linear-gradient(90deg,rgba(200,160,53,.12),rgba(200,160,53,.02) 70%,transparent);
+}
+.objetivo .obj-tag{
+  font-family:var(--util);font-size:9px;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--gold-lit);margin-bottom:7px;
+}
+.objetivo .obj-txt{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(20px,5.6vw,30px);line-height:1.3;letter-spacing:.02em;
+  color:#FFF6DA;text-shadow:0 0 24px rgba(239,206,121,.25);
+  text-wrap:balance;
+}
+
+/* cenário que passa por trás */
 .cenario{position:relative;height:0;z-index:0;pointer-events:none}
 .cenario .morro{
   position:absolute;left:-16%;right:-16%;height:56svh;top:-38svh;
@@ -96,33 +125,34 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   font-family:var(--hand);
   font-size:clamp(17px,4.6vw,22px);color:var(--parch-3);opacity:.85;text-align:center;
   max-width:30ch;line-height:1.6;
-  margin:clamp(40px,8svh,80px) auto;
+  margin:clamp(100px,22svh,220px) auto;
   padding:0 24px;
 }
 
 /* ============================================================
    HERO
    ============================================================ */
-#hero{min-height:92svh;display:flex;align-items:center;text-align:center;padding:60px 0}
+#hero{min-height:96svh;display:flex;align-items:center;text-align:center;padding:70px 0}
 #hero .wrap{display:flex;flex-direction:column;align-items:center}
 #hero .kicker{font-family:var(--util);font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
-#hero h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,9.6vw,60px);line-height:1.12;margin-bottom:20px}
-#hero p{color:var(--parch-3);line-height:1.8;max-width:46ch;margin-bottom:30px}
+#hero h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,9.6vw,60px);line-height:1.12;margin-bottom:22px}
+#hero p{color:var(--parch-3);line-height:1.85;max-width:52ch;margin-bottom:18px;font-size:clamp(14px,3.8vw,16px)}
+#hero p b{color:var(--parch-1)}
 .seta{
   font-family:var(--util);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#7A6449;
-  display:flex;flex-direction:column;align-items:center;gap:10px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:14px;
 }
 .seta::after{content:"";width:1px;height:36px;background:linear-gradient(var(--gold),transparent);
   animation:desce 1.8s cubic-bezier(.22,.61,.36,1) infinite}
 @keyframes desce{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
 
 /* ============================================================
-   D1 — A TRAVESSIA
+   D1 — O PERÍODO
    ============================================================ */
 .vela-texto{
   position:relative;
   font-family:var(--display);font-weight:400;
-  font-size:clamp(22px,5.8vw,36px);line-height:1.55;letter-spacing:.04em;
+  font-size:clamp(21px,5.4vw,32px);line-height:1.55;letter-spacing:.04em;
   color:var(--gold-lit);
   text-shadow:0 0 14px rgba(239,206,121,.75),0 0 44px rgba(200,160,53,.4);
   -webkit-mask-image:radial-gradient(circle var(--raio,140px) at var(--vx,-20%) var(--vy,50%),#000 0%,#000 52%,transparent 78%);
@@ -132,7 +162,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 .vela-fantasma{
   position:absolute;inset:0;pointer-events:none;
   font-family:var(--display);font-weight:400;
-  font-size:clamp(22px,5.8vw,36px);line-height:1.55;letter-spacing:.04em;
+  font-size:clamp(21px,5.4vw,32px);line-height:1.55;letter-spacing:.04em;
   color:rgba(239,221,184,.05);
 }
 
@@ -176,10 +206,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   background:radial-gradient(circle 200px at var(--gx,-30%) var(--gy,50%),rgba(255,246,218,.13),rgba(239,206,121,.05) 45%,transparent 70%);
   mix-blend-mode:screen;
 }
+.forja-alvo{ /* a bigorna: só aqui os golpes contam */
+  position:relative;margin-top:20px;padding:20px 16px 24px;
+  border:1px dashed rgba(200,160,53,.28);border-radius:4px;
+  transition:border-color .4s;
+}
+.forja-alvo.pronta{border-color:transparent}
 .forja-msg{
-  margin:22px 0 0;
   font-family:var(--display);font-weight:400;
-  font-size:clamp(20px,5.6vw,32px);line-height:1.5;letter-spacing:.03em;
+  font-size:clamp(19px,5.2vw,30px);line-height:1.5;letter-spacing:.03em;
 }
 .pedaco{
   display:inline;color:#3A2C1B;opacity:.5;
@@ -195,7 +230,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   text-shadow:0 0 8px rgba(239,206,121,.25);
 }
 .forja-simbolo{
-  width:clamp(84px,20vw,110px);margin:26px auto 0;display:block;
+  width:clamp(74px,17vw,96px);margin:20px auto 0;display:block;
   color:var(--ink-soft);
 }
 .forja-simbolo path{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -215,10 +250,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 @keyframes onda{from{width:10px;height:10px;opacity:.95}to{width:190px;height:190px;opacity:0}}
 
 /* ============================================================
-   D4 — A OBRA (paisagem atravessa o desafio, sem moldura)
+   D4 — A EXECUÇÃO
    ============================================================ */
 #d4{text-align:center}
 #d4 .rotulo{justify-content:center}
+#d4 .objetivo{text-align:left}
+#d4 .historia{margin-left:auto;margin-right:auto}
 .noite{position:absolute;inset:0;z-index:0;overflow:visible;pointer-events:none}
 .n-lua{
   position:absolute;left:70%;top:4%;width:70px;height:70px;border-radius:50%;
@@ -232,8 +269,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 }
 .vagalume{position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;
   background:var(--gold-lit);box-shadow:0 0 12px 3px rgba(239,206,121,.55)}
+.obra-alvo{ /* o canteiro: só aqui os toques erguem */
+  position:relative;display:block;margin:18px auto 0;width:min(80vw,360px);
+  padding:14px 10px 10px;
+  border:1px dashed rgba(200,160,53,.28);border-radius:4px;
+  transition:border-color .4s;
+}
+.obra-alvo.pronta{border-color:transparent}
 #monumento{
-  width:min(78vw,340px);margin:18px auto 0;display:block;overflow:visible;
+  width:100%;display:block;overflow:visible;
   filter:drop-shadow(0 18px 30px rgba(0,0,0,.55));
 }
 #monumento .pedra{fill:#C9AE7B;stroke:#1E150A;stroke-width:2;stroke-linejoin:round}
@@ -264,12 +308,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 /* ============================================================
    FINAL
    ============================================================ */
-#final{min-height:100svh;display:flex;align-items:center;text-align:center;position:relative;padding:80px 0}
+#final{min-height:100svh;display:flex;align-items:center;text-align:center;position:relative;padding:100px 0}
 #final .wrap{display:flex;flex-direction:column;align-items:center;position:relative;z-index:2}
 #final .xis{width:74px;margin-bottom:26px;filter:drop-shadow(0 0 22px rgba(200,160,53,.6))}
 #final .xis path{stroke:var(--gold-lit);stroke-width:7;stroke-linecap:round;fill:none}
 #final h2{font-family:var(--display);font-weight:400;font-size:clamp(30px,8vw,52px);line-height:1.2;margin-bottom:16px}
-#final p{color:var(--parch-2);line-height:1.85;max-width:46ch;margin-bottom:30px;font-size:clamp(15px,4vw,17px)}
+#final p{color:var(--parch-2);line-height:1.85;max-width:48ch;margin-bottom:30px;font-size:clamp(14.5px,3.9vw,16.5px)}
 .btn-pacto{
   font-family:var(--util);font-size:11px;letter-spacing:.28em;text-transform:uppercase;
   color:var(--void);background:var(--gold-lit);
@@ -289,6 +333,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <div id="mundo"></div>
 <canvas id="brasas"></canvas>
 <div id="trilha"><i id="trilha-fill"></i></div>
+<button id="som-master" aria-label="Ligar ou desligar o som"><span class="led"></span><span id="som-master-txt">som off</span></button>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="lacre" viewBox="-60 -60 120 120">
@@ -306,21 +351,33 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap">
     <div class="kicker">Caça ao Primeiro Pin · protótipo</div>
     <h1>Quatro desafios<br>te separam do pin</h1>
-    <p>A estrada começa no escuro e termina no ouro. Cada desafio conta sua própria história —
-       desça e viva cada um deles.</p>
+    <p>A <b>Caça ao Primeiro Pin</b> é a trilha de quem foi convidado a conhecer o Rotaract:
+       quatro desafios, vividos ao longo de cerca de <b>90 dias</b>, que apresentam o clube por
+       dentro — as reuniões, os treinamentos e os projetos. Ao completá-los, o clube vota o seu
+       ingresso e você conquista o <b>primeiro pin</b>: o símbolo de que passou a fazer parte.</p>
+    <p>A estrada começa no escuro e termina no ouro.</p>
     <div class="seta">desça para começar</div>
   </div>
 </header>
 
-<!-- ================= D1 · A TRAVESSIA ================= -->
+<!-- ================= D1 · O PERÍODO ================= -->
 <section class="desafio" id="d1">
   <div class="wrap">
     <div class="rotulo">Desafio 01 · O Período</div>
-    <div style="position:relative">
-      <div class="vela-fantasma" aria-hidden="true">Participe das reuniões por no mínimo 90 dias. O Rotaract exige compromisso e frequência — use esse tempo para conhecer o movimento e descobrir se é o que você busca.</div>
-      <div class="vela-texto" id="vela-texto">Participe das reuniões por no mínimo <b>90 dias</b>. O Rotaract exige <b>compromisso</b> e <b>frequência</b> — use esse tempo para conhecer o movimento e descobrir se é <b>o que você busca</b>.</div>
+    <h2>Toda caçada<br>começa no escuro</h2>
+    <div class="objetivo">
+      <div class="obj-tag">Objetivo</div>
+      <div class="obj-txt">Participe das reuniões por, no mínimo, 90 dias</div>
     </div>
-    <div class="dica">deslize ou toque — sua luz revela as palavras<br>em transferência de outro clube? seu período é reduzido: você já conhece o movimento</div>
+    <div style="position:relative;margin-top:18px">
+      <div class="vela-fantasma" aria-hidden="true">O Rotaract exige compromisso e frequência. Use esses dias para conhecer o movimento por dentro — e descobrir se é o que você busca.</div>
+      <div class="vela-texto" id="vela-texto">O Rotaract exige <b>compromisso</b> e <b>frequência</b>. Use esses dias para conhecer o movimento por dentro — e descobrir se é <b>o que você busca</b>.</div>
+    </div>
+    <div class="dica">deslize ou toque na escuridão — sua luz revela as palavras</div>
+    <p class="historia apoio">As reuniões são o coração do clube: é nelas que os projetos nascem,
+       as decisões são tomadas e as amizades se formam. Noventa dias dão a você o tempo de ver
+       tudo isso acontecer de verdade — sem pressa. E se você estiver em <b>transferência de outro
+       clube</b>, seu período é reduzido: você já conhece o movimento.</p>
   </div>
 </section>
 
@@ -335,11 +392,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap">
     <div class="rotulo">Desafio 02 · A Constância</div>
     <h2>O clube te escreveu<br>uma carta</h2>
-    <p class="historia">Compromisso não se prova no impulso — se prova no <b>ritmo</b>. Rasgue o envelope.</p>
+    <div class="objetivo">
+      <div class="obj-tag">Objetivo</div>
+      <div class="obj-txt">Atinja 60% de frequência no período</div>
+    </div>
+    <p class="historia" style="margin-top:16px">Compromisso não se prova no impulso — se prova no <b>ritmo</b>. Rasgue o envelope.</p>
     <div class="carta-area" id="carta-area">
       <div class="carta" id="carta">
         <div class="selo-topo">Rotaract Club de Jaraguá do Sul</div>
-        <div class="frase">"Alcance <b>60% de frequência</b> nos seus 90 dias. Se faltar, recupere na <b>família rotária</b> — Rotary, Rotaract e Interact. Cada presença é uma marca sua no clube."</div>
+        <div class="frase">"Sua frequência será acompanhada ao longo dos 90 dias do Período. Cada presença é uma marca sua na história do clube."</div>
         <div class="assin">— toque na carta: sua marca aparece, o papel a absorve</div>
       </div>
       <div class="envelope" id="envelope">
@@ -347,6 +408,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
         <div class="env-dica">← arraste para rasgar</div>
       </div>
     </div>
+    <p class="historia apoio">A constância vale mais que a intensidade: aparecer <b>sempre</b> ensina
+       mais do que aparecer muito de vez em quando. E se você faltar a uma reunião, a presença pode
+       ser <b>recuperada na família rotária</b> — qualquer reunião de Rotary, Rotaract ou Interact conta
+       para a sua frequência.</p>
   </div>
 </section>
 
@@ -362,17 +427,27 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap" id="forja-stage" style="text-align:center">
     <div class="rotulo" style="justify-content:center">Desafio 03 · O Treino</div>
     <h2>A mensagem está<br>no ferro bruto</h2>
-    <div class="forja-msg" id="forja-msg" aria-label="Participe de no mínimo 1 treinamento. É preciso treinar para melhorar — a busca pelo conhecimento leva à excelência. Valem os treinamentos do distrito e do clube."></div>
-    <svg class="forja-simbolo" id="forja-simbolo" viewBox="-50 -50 100 100" aria-hidden="true">
-      <path d="M-16 6c0-16 7-26 16-26s16 10 16 26"/>
-      <path d="M-16 6v10h32V6"/>
-      <path d="M-4 16v8"/><path d="M4 16v8"/>
-      <path d="M-34 -6c-2 18 8 32 22 36"/>
-      <path d="M34 -6c2 18-8 32-22 36"/>
-      <path d="M-30 -2-36 -8"/><path d="M-28 8-35 5"/>
-      <path d="M30 -2 36 -8"/><path d="M28 8 35 5"/>
-    </svg>
-    <div class="dica" id="forja-dica">deslize o dedo: o metal cintila · golpeie (toque) para forjar — 4 golpes</div>
+    <div class="objetivo" style="text-align:left">
+      <div class="obj-tag">Objetivo</div>
+      <div class="obj-txt">Participe de, no mínimo, 1 treinamento</div>
+    </div>
+    <div class="forja-alvo" id="forja-alvo">
+      <div class="forja-msg" id="forja-msg" aria-label="É preciso treinar para melhorar — a busca pelo conhecimento leva à excelência. Ferro bruto também vira lâmina."></div>
+      <svg class="forja-simbolo" id="forja-simbolo" viewBox="-50 -50 100 100" aria-hidden="true">
+        <path d="M-16 6c0-16 7-26 16-26s16 10 16 26"/>
+        <path d="M-16 6v10h32V6"/>
+        <path d="M-4 16v8"/><path d="M4 16v8"/>
+        <path d="M-34 -6c-2 18 8 32 22 36"/>
+        <path d="M34 -6c2 18-8 32-22 36"/>
+        <path d="M-30 -2-36 -8"/><path d="M-28 8-35 5"/>
+        <path d="M30 -2 36 -8"/><path d="M28 8 35 5"/>
+      </svg>
+    </div>
+    <div class="dica" id="forja-dica">toque na bigorna para golpear — 4 golpes forjam a mensagem</div>
+    <p class="historia apoio" style="margin-left:auto;margin-right:auto">São válidos os treinamentos
+       promovidos pelo <b>distrito</b> e pelo <b>clube</b> — pergunte aos associados quais vêm por aí.
+       Cada treinamento mostra uma engrenagem do movimento: liderança, projetos, protocolo, história.
+       É preciso treinar para melhorar, e a busca pelo conhecimento leva à excelência.</p>
   </div>
 </section>
 
@@ -382,7 +457,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 </div>
 <p class="verso">lâmina afiada. agora, a obra que fica de pé…</p>
 
-<!-- ================= D4 · A OBRA ================= -->
+<!-- ================= D4 · A EXECUÇÃO ================= -->
 <section class="desafio" id="d4">
   <div class="noite" id="noite">
     <div class="n-lua" id="n-lua"></div>
@@ -391,33 +466,43 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap">
     <div class="rotulo">Desafio 04 · A Execução</div>
     <h2>Nada ensina como<br>pôr a mão na massa</h2>
-    <svg id="monumento" viewBox="0 0 320 214" aria-hidden="true">
-      <g class="peca" id="pc-base">
-        <rect class="pedra" x="26" y="196" width="268" height="12" rx="2"/>
-        <rect class="pedra" x="40" y="184" width="240" height="12" rx="2"/>
-      </g>
-      <g class="peca" id="pc-ext">
-        <rect class="pedra" x="58" y="104" width="24" height="80"/>
-        <rect class="pedra" x="52" y="96" width="36" height="9" rx="2"/>
-        <rect class="pedra" x="238" y="104" width="24" height="80"/>
-        <rect class="pedra" x="232" y="96" width="36" height="9" rx="2"/>
-      </g>
-      <g class="peca" id="pc-int">
-        <rect class="pedra" x="118" y="104" width="24" height="80"/>
-        <rect class="pedra" x="112" y="96" width="36" height="9" rx="2"/>
-        <rect class="pedra" x="178" y="104" width="24" height="80"/>
-        <rect class="pedra" x="172" y="96" width="36" height="9" rx="2"/>
-      </g>
-      <g class="peca" id="pc-arq">
-        <rect class="pedra" x="44" y="82" width="232" height="14" rx="2"/>
-      </g>
-      <g class="peca" id="pc-front">
-        <path class="pedra" d="M38 82 160 30 282 82Z"/>
-        <circle class="pedra" cx="160" cy="64" r="7"/>
-      </g>
-    </svg>
-    <div class="gravacao" id="gravacao">"Participe de no mínimo 3 projetos ou ações. É pelos projetos que o Rotaract impacta o mundo — e é executando que se entende como eles funcionam."</div>
-    <div class="dica" id="obra-dica">cada projeto ergue uma parte da obra — toque 3 vezes</div>
+    <div class="objetivo">
+      <div class="obj-tag">Objetivo</div>
+      <div class="obj-txt">Participe de, no mínimo, 3 projetos ou ações</div>
+    </div>
+    <div class="obra-alvo" id="obra-alvo">
+      <svg id="monumento" viewBox="0 0 320 214" aria-hidden="true">
+        <g class="peca" id="pc-base">
+          <rect class="pedra" x="26" y="196" width="268" height="12" rx="2"/>
+          <rect class="pedra" x="40" y="184" width="240" height="12" rx="2"/>
+        </g>
+        <g class="peca" id="pc-ext">
+          <rect class="pedra" x="58" y="104" width="24" height="80"/>
+          <rect class="pedra" x="52" y="96" width="36" height="9" rx="2"/>
+          <rect class="pedra" x="238" y="104" width="24" height="80"/>
+          <rect class="pedra" x="232" y="96" width="36" height="9" rx="2"/>
+        </g>
+        <g class="peca" id="pc-int">
+          <rect class="pedra" x="118" y="104" width="24" height="80"/>
+          <rect class="pedra" x="112" y="96" width="36" height="9" rx="2"/>
+          <rect class="pedra" x="178" y="104" width="24" height="80"/>
+          <rect class="pedra" x="172" y="96" width="36" height="9" rx="2"/>
+        </g>
+        <g class="peca" id="pc-arq">
+          <rect class="pedra" x="44" y="82" width="232" height="14" rx="2"/>
+        </g>
+        <g class="peca" id="pc-front">
+          <path class="pedra" d="M38 82 160 30 282 82Z"/>
+          <circle class="pedra" cx="160" cy="64" r="7"/>
+        </g>
+      </svg>
+    </div>
+    <div class="gravacao" id="gravacao">"Nada como pôr a mão na massa para aprender. O que você ergue com o clube fica de pé para a cidade."</div>
+    <div class="dica" id="obra-dica">toque no canteiro: cada projeto ergue uma parte — 3 toques</div>
+    <p class="historia apoio" style="margin-left:auto;margin-right:auto">O Rotaract impacta o mundo
+       por meio dos seus <b>projetos</b> — e é participando que se entende como eles funcionam:
+       o planejamento, a execução e o resultado que fica para a comunidade. Três projetos ou ações
+       bastam para você viver o ciclo completo, do primeiro rascunho ao último abraço.</p>
   </div>
 </section>
 
@@ -426,8 +511,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap">
     <svg class="xis" viewBox="0 0 60 60" aria-hidden="true"><path d="M12 12 48 48M48 12 12 48"/></svg>
     <h2>O X do mapa<br>é onde você está</h2>
-    <p>Quatro desafios, noventa dias. O escuro do começo já ficou para trás — agora você conhece a estrada.
-       O pin espera por quem termina a travessia.</p>
+    <p>Quatro desafios, noventa dias. Ao completá-los, o clube abre a votação do seu ingresso —
+       e, aprovado, você recebe o primeiro pin. O escuro do começo já ficou para trás:
+       agora você conhece a estrada.</p>
     <button class="btn-pacto" id="btn-pacto">Aceito os quatro desafios</button>
   </div>
 </section>
@@ -451,7 +537,122 @@ function lerp(a,b,t){ return a+(b-a)*t; }
 })();
 
 /* ==========================================================
-   O MUNDO ESQUENTA — contínuo, sem degraus
+   TOQUE LIMPO — dedo que rola a tela não dispara efeito
+   ========================================================== */
+function soToque(el,fn){
+  var st=null;
+  el.addEventListener("pointerdown",function(e){
+    st={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId};
+  });
+  el.addEventListener("pointerup",function(e){
+    if(!st||e.pointerId!==st.id){ st=null; return; }
+    var dx=e.clientX-st.x,dy=e.clientY-st.y;
+    var ok=(performance.now()-st.t)<600 && Math.hypot(dx,dy)<12;
+    st=null;
+    if(ok) fn(e);
+  });
+  el.addEventListener("pointercancel",function(){ st=null; });
+}
+
+/* ==========================================================
+   SOM — sintetizado, liga no primeiro gesto, mudo sempre à mão
+   ========================================================== */
+var actx=null,masterGain=null,somLigado=false,somArmado=false;
+function audio(){
+  if(!actx){
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return null;
+    actx=new AC();
+    masterGain=actx.createGain();
+    masterGain.gain.value=0;
+    masterGain.connect(actx.destination);
+  }
+  if(actx.state==="suspended") actx.resume();
+  return actx;
+}
+function ligarSom(liga){
+  somLigado=liga;
+  var c=audio();
+  if(c) masterGain.gain.setTargetAtTime(liga?0.6:0,c.currentTime,.05);
+  $("som-master").classList.toggle("ligado",liga);
+  $("som-master-txt").textContent=liga?"som on":"som off";
+}
+function armaSom(){ if(!somArmado){ somArmado=true; ligarSom(true); } }
+$("som-master").addEventListener("click",function(){ somArmado=true; ligarSom(!somLigado); });
+function ruido(dur){
+  var sr=actx.sampleRate,b=actx.createBuffer(1,Math.ceil(sr*dur),sr),d=b.getChannelData(0),i;
+  for(i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  return b;
+}
+function envAud(g,t0,a,pico,dur){
+  g.gain.setValueAtTime(.0001,t0);
+  g.gain.linearRampToValueAtTime(pico,t0+a);
+  g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+}
+var SONS={
+  chama:function(c,t){ // sopro suave da vela
+    var s=c.createBufferSource(); s.buffer=ruido(.3);
+    var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=650;
+    var g=c.createGain(); envAud(g,t,.05,.12,.28);
+    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.3);
+  },
+  rasgo:function(c,t){ // papel rasgando
+    var s=c.createBufferSource(); s.buffer=ruido(.16);
+    var f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=950; f.Q.value=.6;
+    var g=c.createGain(); envAud(g,t,.01,.4,.15);
+    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.17);
+  },
+  tinta:function(c,t){ // gota de tinta
+    var o=c.createOscillator(); o.type="sine";
+    o.frequency.setValueAtTime(340,t);
+    o.frequency.exponentialRampToValueAtTime(140,t+.11);
+    var g=c.createGain(); envAud(g,t,.005,.3,.13);
+    o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+.15);
+  },
+  bigorna:function(c,t){ // golpe metálico
+    var o=c.createOscillator(); o.type="sine";
+    o.frequency.setValueAtTime(190,t);
+    o.frequency.exponentialRampToValueAtTime(70,t+.15);
+    var g=c.createGain(); envAud(g,t,.004,.8,.19);
+    o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+.21);
+    [1500,2650].forEach(function(fr,i){
+      var m=c.createOscillator(); m.type="triangle"; m.frequency.value=fr;
+      var mg=c.createGain(); envAud(mg,t,.003,i?0.06:0.11,.12);
+      m.connect(mg); mg.connect(masterGain); m.start(t); m.stop(t+.14);
+    });
+    var s=c.createBufferSource(); s.buffer=ruido(.05);
+    var hp=c.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=2200;
+    var sg=c.createGain(); envAud(sg,t,.002,.2,.05);
+    s.connect(hp); hp.connect(sg); sg.connect(masterGain); s.start(t); s.stop(t+.06);
+  },
+  pedra:function(c,t){ // bloco assentando
+    var o=c.createOscillator(); o.type="sine";
+    o.frequency.setValueAtTime(95,t);
+    o.frequency.exponentialRampToValueAtTime(45,t+.2);
+    var g=c.createGain(); envAud(g,t,.005,.9,.24);
+    o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+.26);
+    var s=c.createBufferSource(); s.buffer=ruido(.14);
+    var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=420;
+    var sg=c.createGain(); envAud(sg,t,.004,.35,.13);
+    s.connect(f); f.connect(sg); sg.connect(masterGain); s.start(t); s.stop(t+.15);
+  },
+  fanfarra:function(c,t){
+    [523.25,659.25,783.99,1046.5].forEach(function(fr,i){
+      var o=c.createOscillator(); o.type="sine"; o.frequency.value=fr;
+      var g=c.createGain(); envAud(g,t+i*.13,.01,.18,.55);
+      o.connect(g); g.connect(masterGain);
+      o.start(t+i*.13); o.stop(t+i*.13+.6);
+    });
+  }
+};
+function tocar(nome){
+  if(!somLigado) return;
+  var c=audio(); if(!c) return;
+  SONS[nome] && SONS[nome](c,c.currentTime);
+}
+
+/* ==========================================================
+   O MUNDO ESQUENTA
    ========================================================== */
 var CALOR=0;
 var PALETA=[
@@ -516,28 +717,21 @@ aoRolarGlobal();
 })();
 
 /* ==========================================================
-   GSAP — só suavidade incremental: entradas leves, parallax
-   de paisagem e cenas contínuas. Nada fica preso na tela.
+   GSAP — suavidade incremental
    ========================================================== */
 if(window.gsap && window.ScrollTrigger){
   gsap.registerPlugin(ScrollTrigger);
-
-  // entrada suave de cada bloco (sem saída — o conteúdo simplesmente segue)
   document.querySelectorAll(".desafio .wrap, .verso, #final .wrap").forEach(function(el){
     gsap.fromTo(el,{opacity:0,y:36},{
       opacity:1,y:0,ease:"none",
       scrollTrigger:{trigger:el,start:"top 92%",end:"top 60%",scrub:.4}
     });
   });
-
-  // paisagem passando por trás (parallax discreto, sem moldura)
   document.querySelectorAll(".cenario .morro").forEach(function(m){
     var f=parseFloat(m.dataset.par);
     gsap.fromTo(m,{y:90*f},{y:-90*f,ease:"none",
       scrollTrigger:{trigger:m.parentElement,start:"top bottom",end:"bottom top",scrub:.4}});
   });
-
-  // D3: o elmo esquenta gradualmente enquanto o desafio passa
   ScrollTrigger.create({
     trigger:"#d3",start:"top bottom",end:"bottom top",scrub:true,
     onUpdate:function(self){
@@ -546,15 +740,13 @@ if(window.gsap && window.ScrollTrigger){
       s.style.filter="drop-shadow(0 0 "+Math.round(p*26)+"px rgba(239,166,60,"+(p*.85).toFixed(2)+"))";
     }
   });
-
-  // D4: a lua se põe e o amanhecer sobe enquanto a seção atravessa a tela
   gsap.timeline({scrollTrigger:{trigger:"#d4",start:"top bottom",end:"bottom top",scrub:.5}})
     .fromTo("#n-lua",{y:-40,opacity:1},{y:200,opacity:.12,ease:"none"},0)
     .fromTo("#n-sol",{opacity:0},{opacity:1,ease:"none"},.25);
 }
 
 /* ==========================================================
-   D1 — A VELA
+   D1 — O PERÍODO (vela)
    ========================================================== */
 (function(){
   var sec=$("d1"),texto=$("vela-texto");
@@ -566,6 +758,7 @@ if(window.gsap && window.ScrollTrigger){
   }
   sec.addEventListener("pointermove",function(e){ move(e.clientX,e.clientY); },{passive:true});
   sec.addEventListener("pointerdown",function(e){ move(e.clientX,e.clientY); },{passive:true});
+  soToque(sec,function(){ armaSom(); tocar("chama"); });
   if(!reduz)(function treme(){
     flick+=.15;
     texto.style.setProperty("--raio",(raioBase+Math.sin(flick)*7+Math.sin(flick*2.7)*5).toFixed(0)+"px");
@@ -574,23 +767,26 @@ if(window.gsap && window.ScrollTrigger){
 })();
 
 /* ==========================================================
-   D2 — A CARTA
+   D2 — A CONSTÂNCIA (carta)
    ========================================================== */
 (function(){
   var area=$("carta-area"),env=$("envelope"),carta=$("carta");
-  var drag=null,rasgada=false;
+  var drag=null,rasgada=false,ultRasgoSom=100;
   function corte(pct){
     pct=Math.max(0,Math.min(100,pct));
     env.style.clipPath="polygon(0 0,"+pct+"% 0,"+pct+"% 100%,0 100%)";
+    if(ultRasgoSom-pct>=18){ ultRasgoSom=pct; tocar("rasgo"); }
     if(pct<8 && !rasgada){
       rasgada=true;
       env.style.display="none";
+      tocar("rasgo");
       vibrar([10,30,14]);
     }
   }
   env.addEventListener("pointerdown",function(e){
     env.setPointerCapture(e.pointerId);
     drag={id:e.pointerId};
+    armaSom();
   });
   env.addEventListener("pointermove",function(e){
     if(!drag||e.pointerId!==drag.id) return;
@@ -598,8 +794,9 @@ if(window.gsap && window.ScrollTrigger){
     corte((e.clientX-r.left)/r.width*100);
   });
   env.addEventListener("pointerup",function(){ drag=null; });
-  carta.addEventListener("pointerdown",function(e){
+  soToque(carta,function(e){
     if(!rasgada) return;
+    armaSom();
     var r=carta.getBoundingClientRect();
     var wrap=document.createElement("div");
     wrap.className="tinta-mark";
@@ -616,6 +813,7 @@ if(window.gsap && window.ScrollTrigger){
     svg.push('</svg>');
     wrap.innerHTML=svg.join("");
     carta.appendChild(wrap);
+    tocar("tinta");
     vibrar(8);
     requestAnimationFrame(function(){ wrap.classList.add("some"); });
     setTimeout(function(){ wrap.remove(); },2600);
@@ -623,15 +821,15 @@ if(window.gsap && window.ScrollTrigger){
 })();
 
 /* ==========================================================
-   D3 — A FORJA
+   D3 — O TREINO (forja concentrada na bigorna)
    ========================================================== */
 (function(){
-  var sec=$("d3"),brilho=$("brilho-metal"),stage=$("forja-stage"),dica=$("forja-dica");
+  var sec=$("d3"),brilho=$("brilho-metal"),stage=$("forja-stage"),dica=$("forja-dica"),alvo=$("forja-alvo");
   var PEDACOS=[
-    "Participe de no mínimo 1 treinamento. ",
     "É preciso treinar para melhorar — ",
-    "a busca pelo conhecimento leva à excelência. ",
-    "Valem os do distrito e os do clube."
+    "a busca pelo conhecimento ",
+    "leva à excelência. ",
+    "Ferro bruto também vira lâmina."
   ];
   var msg=$("forja-msg");
   var els=PEDACOS.map(function(t){
@@ -674,7 +872,8 @@ if(window.gsap && window.ScrollTrigger){
     })();
   }
 
-  sec.addEventListener("pointerdown",function(e){
+  soToque(alvo,function(e){
+    armaSom();
     var r=sec.getBoundingClientRect();
     var x=e.clientX-r.left,y=e.clientY-r.top;
     var onda=document.createElement("i");
@@ -685,18 +884,22 @@ if(window.gsap && window.ScrollTrigger){
     stage.classList.remove("golpe-anim");
     void stage.offsetWidth;
     stage.classList.add("golpe-anim");
+    tocar("bigorna");
     vibrar(12);
 
     if(golpe<els.length){
-      var alvo=els[golpe];
-      alvo.classList.add("quente");
-      (function(a){ setTimeout(function(){ a.classList.add("frio"); },1100); })(alvo);
-      var er=alvo.getBoundingClientRect();
+      var alvoTxt=els[golpe];
+      alvoTxt.classList.add("quente");
+      (function(a){ setTimeout(function(){ a.classList.add("frio"); },1100); })(alvoTxt);
+      var er=alvoTxt.getBoundingClientRect();
       faiscas(er.left-r.left+er.width/2, er.top-r.top+er.height/2, 16);
       golpe++;
-      dica.textContent = golpe<els.length
-        ? "deslize o dedo: o metal cintila · golpeie para forjar — "+(els.length-golpe)+(els.length-golpe>1?" golpes":" golpe")
-        : "a mensagem foi forjada — cada golpe valeu";
+      if(golpe<els.length){
+        dica.textContent="continue golpeando a bigorna — "+(els.length-golpe)+(els.length-golpe>1?" golpes":" golpe");
+      } else {
+        dica.textContent="a mensagem foi forjada — cada golpe valeu";
+        alvo.classList.add("pronta");
+      }
     } else {
       faiscas(x,y,14);
     }
@@ -704,11 +907,10 @@ if(window.gsap && window.ScrollTrigger){
 })();
 
 /* ==========================================================
-   D4 — A OBRA
+   D4 — A EXECUÇÃO (obra concentrada no canteiro)
    ========================================================== */
 (function(){
-  var sec=$("d4"),noite=$("noite"),dica=$("obra-dica");
-  // 3 projetos = 3 etapas da obra
+  var sec=$("d4"),noite=$("noite"),dica=$("obra-dica"),alvo=$("obra-alvo");
   var grupos=[["pc-base","pc-ext"],["pc-int","pc-arq"],["pc-front"]].map(function(g){ return g.map($); });
   var todas=[];
   grupos.forEach(function(g){ todas=todas.concat(g); });
@@ -785,7 +987,8 @@ if(window.gsap && window.ScrollTrigger){
     setTimeout(function(){s.remove();},950);
   },{passive:true});
 
-  sec.addEventListener("pointerdown",function(e){
+  soToque(alvo,function(e){
+    armaSom();
     var r=sec.getBoundingClientRect();
     if(posta<grupos.length){
       var grupo=grupos[posta];
@@ -794,14 +997,17 @@ if(window.gsap && window.ScrollTrigger){
         else { el.style.opacity=1; el.style.transform="none"; }
         poeira(el);
       });
+      tocar("pedra");
       vibrar(10);
       posta++;
       if(posta<grupos.length){
         var falta=grupos.length-posta;
         dica.textContent="cada projeto ergue uma parte da obra — "+(falta>1?falta+" projetos restantes":"1 projeto restante");
       } else {
-        dica.textContent="a obra está de pé — toque e celebre";
+        dica.textContent="a obra está de pé — toque no canteiro e celebre";
+        alvo.classList.add("pronta");
         $("gravacao").classList.add("aparece");
+        tocar("fanfarra");
         vibrar([15,50,20,50,80]);
         var mr=$("monumento").getBoundingClientRect();
         [[.3,.2],[.7,.15],[.5,.05]].forEach(function(f,i){
@@ -812,11 +1018,11 @@ if(window.gsap && window.ScrollTrigger){
       }
     } else {
       fogos(e.clientX-r.left,e.clientY-r.top);
+      tocar("pedra");
       vibrar(8);
     }
   });
 
-  /* vagalumes discretos, atravessando a seção */
   if(!reduz){
     var vagas=[],i;
     for(i=0;i<10;i++){
@@ -841,6 +1047,8 @@ if(window.gsap && window.ScrollTrigger){
 
 /* final */
 $("btn-pacto").addEventListener("click",function(){
+  armaSom();
+  tocar("fanfarra");
   vibrar([15,50,20,50,80]);
   this.textContent="Que comece a caçada ✕";
 });
