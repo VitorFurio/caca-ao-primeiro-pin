@@ -162,7 +162,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 .carta .d-desc{color:var(--ink)}
 .envelope{
   position:absolute;inset:0;z-index:6;border-radius:3px;
-  touch-action:none; /* o rasgo é vertical: captura o gesto de subir */
   background:
     radial-gradient(circle at 14% 88%,rgba(120,86,38,.28),transparent 30%),
     radial-gradient(circle at 88% 16%,rgba(120,86,38,.22),transparent 26%),
@@ -248,6 +247,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   position:absolute;left:50%;bottom:-6%;width:130vw;height:50svh;transform:translateX(-50%);
   background:radial-gradient(60% 100% at 50% 100%,rgba(239,206,121,.6),rgba(233,169,60,.22) 55%,transparent 75%);
   opacity:0;
+  /* dissolve na base — o amanhecer se funde com a estrada, sem linha de corte */
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 96%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 96%);
 }
 .vagalume{position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;
   background:var(--gold-lit);box-shadow:0 0 12px 3px rgba(239,206,121,.55)}
@@ -305,23 +307,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 }
 #pin-cena{width:100%;height:100%;display:block}
 
-/* ============================================================
-   FINAL
-   ============================================================ */
-#final{min-height:100svh;display:flex;align-items:center;text-align:center;position:relative;padding:100px 0}
-#final .wrap{display:flex;flex-direction:column;align-items:center;position:relative;z-index:2}
-#final .xis{width:74px;margin-bottom:26px;filter:drop-shadow(0 0 22px rgba(200,160,53,.6))}
-#final .xis path{stroke:var(--gold-lit);stroke-width:7;stroke-linecap:round;fill:none}
-#final h2{font-family:var(--display);font-weight:400;font-size:clamp(30px,8vw,52px);line-height:1.2;margin-bottom:16px}
-#final p{color:var(--parch-2);line-height:1.85;max-width:48ch;margin-bottom:30px;font-size:clamp(14.5px,3.9vw,16.5px)}
-.btn-pacto{
-  font-family:var(--util);font-size:11px;letter-spacing:.28em;text-transform:uppercase;
-  color:var(--void);background:var(--gold-lit);
-  min-height:52px;padding:16px 34px;border-radius:1px;
-  box-shadow:0 14px 44px -14px rgba(200,160,53,.8);
-  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
-}
-.btn-pacto:active{transform:scale(.96)}
+/* o pin encerra o site — cauda de respiro depois dele */
+#premio{padding-bottom:clamp(200px,38svh,420px)}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
@@ -349,7 +336,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
     <path id="lacre-suave-blob" fill="#9E1430"/>
     <circle r="35" fill="#8E1029"/>
     <circle r="29" fill="none" stroke="#C93450" stroke-width="1.6" opacity=".65"/>
-    <g fill="none" stroke="#E9A6B2" stroke-width="2.4" stroke-linecap="round" opacity=".85">
+    <!-- seta aponta para a esquerda: a direção do deslize que abre a carta -->
+    <g fill="none" stroke="#E9A6B2" stroke-width="2.4" stroke-linecap="round" opacity=".85" transform="rotate(-90)">
       <circle r="15"/><path d="M0 -10V5"/><path d="M-5 -5 0 -10 5 -5"/>
     </g>
     <ellipse cx="-15" cy="-19" rx="15" ry="8" fill="rgba(255,255,255,.13)" transform="rotate(-32 -15 -19)"/>
@@ -530,17 +518,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
       <div class="d-nome">O Primeiro Pin</div>
       <div id="pin-palco"><canvas id="pin-cena"></canvas></div>
     </div>
-  </div>
-</section>
-
-<!-- ================= FINAL ================= -->
-<section id="final">
-  <div class="wrap">
-    <svg class="xis" viewBox="0 0 60 60" aria-hidden="true"><path d="M12 12 48 48M48 12 12 48"/></svg>
-    <h2>O X do mapa<br>é onde você está</h2>
-    <p>Quatro desafios, noventa dias. O escuro do começo já ficou para trás:
-       agora você conhece a estrada — e sabe o que espera no fim dela.</p>
-    <button class="btn-pacto" id="btn-pacto">Aceito os quatro desafios</button>
   </div>
 </section>
 
@@ -778,7 +755,7 @@ aoRolarGlobal();
    ========================================================== */
 if(window.gsap && window.ScrollTrigger){
   gsap.registerPlugin(ScrollTrigger);
-  document.querySelectorAll(".desafio .wrap, .verso, #final .wrap").forEach(function(el){
+  document.querySelectorAll(".desafio .wrap, .verso").forEach(function(el){
     gsap.fromTo(el,{opacity:0,y:36},{
       opacity:1,y:0,ease:"none",
       scrollTrigger:{trigger:el,start:"top 92%",end:"top 60%",scrub:.4}
@@ -839,10 +816,10 @@ if(window.gsap && window.ScrollTrigger){
 (function(){
   var area=$("carta-area"),env=$("envelope"),carta=$("carta");
   var drag=null,rasgada=false,ultRasgoSom=100;
-  // a carta abre de baixo para cima: arraste o dedo subindo
+  // abertura lateral (a seta do selo aponta a direção do deslize)
   function corte(pct){
     pct=Math.max(0,Math.min(100,pct));
-    env.style.clipPath="polygon(0 0,100% 0,100% "+pct+"%,0 "+pct+"%)";
+    env.style.clipPath="polygon(0 0,"+pct+"% 0,"+pct+"% 100%,0 100%)";
     if(ultRasgoSom-pct>=18){ ultRasgoSom=pct; tocar("rasgo"); }
     if(pct<10 && !rasgada){
       rasgada=true;
@@ -859,7 +836,7 @@ if(window.gsap && window.ScrollTrigger){
   env.addEventListener("pointermove",function(e){
     if(!drag||e.pointerId!==drag.id) return;
     var r=area.getBoundingClientRect();
-    corte((e.clientY-r.top)/r.height*100);
+    corte((e.clientX-r.left)/r.width*100);
   });
   env.addEventListener("pointerup",function(){ drag=null; });
   soToque(carta,function(e){
@@ -1278,13 +1255,6 @@ if(window.gsap && window.ScrollTrigger){
   }
 })();
 
-/* final */
-$("btn-pacto").addEventListener("click",function(){
-  armaSom();
-  tocar("fanfarra");
-  vibrar([15,50,20,50,80]);
-  this.textContent="Que comece a caçada ✕";
-});
 })();
 </script>
 </body>
