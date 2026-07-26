@@ -358,8 +358,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 }
 .nevoa-area.pronta{border-color:transparent}
 #nevoa{
-  position:absolute;inset:0;width:100%;height:100%;
-  touch-action:none;border-radius:4px;
+  /* a nuvem transborda o quadro e se esvai nas bordas — nada de retângulo
+     (canvas não estica com inset: tamanho explícito via calc) */
+  position:absolute;left:-24px;top:-40px;
+  width:calc(100% + 48px);height:calc(100% + 80px);
+  touch-action:none;
+  /* elipse que TERMINA nas bordas do canvas: miolo denso, contorno de vapor */
+  -webkit-mask-image:radial-gradient(56% 54% at 50% 50%,#000 42%,transparent 98%);
+  mask-image:radial-gradient(56% 54% at 50% 50%,#000 42%,transparent 98%);
   transition:opacity 1.4s ease;
 }
 .nevoa-area.pronta #nevoa{opacity:0;pointer-events:none}
@@ -1481,7 +1487,7 @@ if(window.gsap && window.ScrollTrigger){
   var ultSom=0,ultAmostra=0,px=null,py=null;
 
   function pintar(){
-    var r=area.getBoundingClientRect();
+    var r=cv.getBoundingClientRect();   // o canvas é maior que a área: mede a si mesmo
     W=r.width;H=r.height;
     cv.width=Math.round(W*dpr);
     cv.height=Math.round(H*dpr);
@@ -1534,9 +1540,12 @@ if(window.gsap && window.ScrollTrigger){
     if(limpo) return;
     try{
       var d=ctx.getImageData(0,0,cv.width,cv.height).data;
+      // mede só o miolo (a região da mensagem) — as bordas esfumadas não contam
+      var x0=Math.floor(cv.width*.16),x1=Math.ceil(cv.width*.84);
+      var y0=Math.floor(cv.height*.2),y1=Math.ceil(cv.height*.8);
       var tot=0,vaz=0;
-      for(var y=0;y<cv.height;y+=40){
-        for(var x=0;x<cv.width;x+=40){
+      for(var y=y0;y<y1;y+=40){
+        for(var x=x0;x<x1;x+=40){
           tot++;
           if(d[(y*cv.width+x)*4+3]<60) vaz++;
         }
