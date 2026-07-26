@@ -162,6 +162,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 .carta .d-desc{color:var(--ink)}
 .envelope{
   position:absolute;inset:0;z-index:6;border-radius:3px;
+  touch-action:none; /* o rasgo é vertical: captura o gesto de subir */
   background:
     radial-gradient(circle at 14% 88%,rgba(120,86,38,.28),transparent 30%),
     radial-gradient(circle at 88% 16%,rgba(120,86,38,.22),transparent 26%),
@@ -283,6 +284,26 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:6;
   background:#C9AE7B;opacity:.9;
 }
+
+/* ============================================================
+   O PRIMEIRO PIN — a recompensa, o ponto mais brilhante
+   ============================================================ */
+#premio{position:relative}
+#premio::before{ /* auréola dourada que envolve a chegada */
+  content:"";position:absolute;left:50%;bottom:6%;width:160vw;height:110svh;
+  transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(45% 45% at 50% 60%,rgba(239,206,121,.20),rgba(233,169,60,.08) 55%,transparent 75%);
+}
+.pin-chamada{text-align:center}
+#pin-palco{
+  position:relative;width:min(86vw,440px);height:min(54svh,430px);
+  margin:20px auto 0;touch-action:none;
+}
+#pin-palco::before{
+  content:"";position:absolute;inset:4%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(239,206,121,.22),transparent 62%);
+}
+#pin-cena{width:100%;height:100%;display:block}
 
 /* ============================================================
    FINAL
@@ -489,14 +510,36 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   </div>
 </section>
 
+<div class="cenario" aria-hidden="true">
+  <div class="morro fundo" data-par="0.35"></div>
+  <div class="morro frente" data-par="0.7"></div>
+</div>
+<p class="verso">a recompensa da sua jornada te espera…</p>
+
+<!-- ================= O PRIMEIRO PIN ================= -->
+<section class="desafio" id="premio">
+  <div class="wrap">
+    <p class="historia">Ao concluir os quatro desafios, você está <b>apto a ingressar como membro
+       do Rotaract Club de Jaraguá do Sul</b> — e a ganhar o seu <b>primeiro pin</b>.</p>
+    <p class="historia" style="margin-top:26px">O caminho até ele: informe ao <b>DQA</b> o seu
+       interesse de se associar ao clube. Será feita uma <b>avaliação da sua frequência e
+       participação</b>, e uma <b>reunião de votação</b> será convocada com os membros.
+       Se a maioria aprovar o seu ingresso, você se torna <b>membro oficial do Rotaract</b> —
+       e conquista o direito ao seu primeiro pin.</p>
+    <div class="pin-chamada apoio">
+      <div class="d-nome">O Primeiro Pin</div>
+      <div id="pin-palco"><canvas id="pin-cena"></canvas></div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= FINAL ================= -->
 <section id="final">
   <div class="wrap">
     <svg class="xis" viewBox="0 0 60 60" aria-hidden="true"><path d="M12 12 48 48M48 12 12 48"/></svg>
     <h2>O X do mapa<br>é onde você está</h2>
-    <p>Quatro desafios, noventa dias. Ao completá-los, o clube abre a votação do seu ingresso —
-       e, aprovado, você recebe o primeiro pin. O escuro do começo já ficou para trás:
-       agora você conhece a estrada.</p>
+    <p>Quatro desafios, noventa dias. O escuro do começo já ficou para trás:
+       agora você conhece a estrada — e sabe o que espera no fim dela.</p>
     <button class="btn-pacto" id="btn-pacto">Aceito os quatro desafios</button>
   </div>
 </section>
@@ -648,11 +691,12 @@ function tocar(nome){
 var CALOR=0;
 var PALETA=[
   [0.00,[11,10,9],   [11,10,9],   0.00],
-  [0.18,[18,13,8],   [11,10,9],   0.04],
-  [0.38,[26,17,9],   [13,10,7],   0.10],
-  [0.58,[42,22,8],   [18,11,6],   0.30],
-  [0.80,[58,36,16],  [26,17,9],   0.45],
-  [1.00,[74,51,21],  [36,23,8],   0.62]
+  [0.16,[18,13,8],   [11,10,9],   0.04],
+  [0.34,[26,17,9],   [13,10,7],   0.10],
+  [0.52,[42,22,8],   [18,11,6],   0.30],
+  [0.72,[58,36,16],  [26,17,9],   0.45],
+  [0.88,[80,57,25],  [38,25,10],  0.62],
+  [1.00,[108,80,38], [54,38,16],  0.85]   /* o pin: o ponto mais brilhante do mapa */
 ];
 function corDoMundo(p){
   var i=1;
@@ -795,11 +839,12 @@ if(window.gsap && window.ScrollTrigger){
 (function(){
   var area=$("carta-area"),env=$("envelope"),carta=$("carta");
   var drag=null,rasgada=false,ultRasgoSom=100;
+  // a carta abre de baixo para cima: arraste o dedo subindo
   function corte(pct){
     pct=Math.max(0,Math.min(100,pct));
-    env.style.clipPath="polygon(0 0,"+pct+"% 0,"+pct+"% 100%,0 100%)";
+    env.style.clipPath="polygon(0 0,100% 0,100% "+pct+"%,0 "+pct+"%)";
     if(ultRasgoSom-pct>=18){ ultRasgoSom=pct; tocar("rasgo"); }
-    if(pct<8 && !rasgada){
+    if(pct<10 && !rasgada){
       rasgada=true;
       env.style.display="none";
       tocar("rasgo");
@@ -814,7 +859,7 @@ if(window.gsap && window.ScrollTrigger){
   env.addEventListener("pointermove",function(e){
     if(!drag||e.pointerId!==drag.id) return;
     var r=area.getBoundingClientRect();
-    corte((e.clientX-r.left)/r.width*100);
+    corte((e.clientY-r.top)/r.height*100);
   });
   env.addEventListener("pointerup",function(){ drag=null; });
   soToque(carta,function(e){
@@ -1031,6 +1076,205 @@ if(window.gsap && window.ScrollTrigger){
       });
       requestAnimationFrame(tick);
     })();
+  }
+})();
+
+/* ==========================================================
+   O PRIMEIRO PIN — 3D interativo, carregado só na chegada
+   ========================================================== */
+(function(){
+  var iniciado=false;
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(en){
+      if(en.isIntersecting && !iniciado){
+        iniciado=true;
+        io.disconnect();
+        var s=document.createElement("script");
+        s.src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js";
+        s.onload=montarPin;
+        document.body.appendChild(s);
+      }
+    });
+  },{rootMargin:"1600px 0px"});
+  io.observe($("premio"));
+
+  function montarPin(){
+    if(!window.THREE) return;
+    var palco=$("pin-palco"),cv=$("pin-cena");
+    var W=palco.clientWidth,H=palco.clientHeight;
+    var renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+    renderer.setSize(W,H,false);
+    renderer.outputEncoding=THREE.sRGBEncoding;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=1.08;
+    var scene=new THREE.Scene();
+    var camera=new THREE.PerspectiveCamera(35,W/H,.1,100);
+    camera.position.set(0,0,7.2);
+
+    /* ambiente de reflexos (ourivesaria) */
+    (function(){
+      var c=document.createElement("canvas");
+      c.width=512;c.height=256;
+      var x=c.getContext("2d");
+      x.fillStyle="#171008";x.fillRect(0,0,512,256);
+      function blob(px,py,r,cor,a){
+        var g=x.createRadialGradient(px,py,0,px,py,r);
+        g.addColorStop(0,cor);g.addColorStop(1,"rgba(0,0,0,0)");
+        x.globalAlpha=a;x.fillStyle=g;
+        x.fillRect(px-r,py-r,r*2,r*2);
+        x.globalAlpha=1;
+      }
+      blob(120,52,110,"#FFFEF6",.95);
+      blob(400,70,80,"#F2E9C8",.55);
+      blob(256,210,120,"#332818",.8);
+      blob(480,180,70,"#D4145A",.2);
+      blob(40,190,60,"#948663",.4);
+      x.fillStyle="rgba(255,252,240,.55)";
+      x.fillRect(0,40,512,3);
+      var tex=new THREE.CanvasTexture(c);
+      tex.mapping=THREE.EquirectangularReflectionMapping;
+      var pm=new THREE.PMREMGenerator(renderer);
+      scene.environment=pm.fromEquirectangular(tex).texture;
+      tex.dispose();pm.dispose();
+    })();
+
+    var PW=3.1,PH=1.25,RAIO=.22,PROF=.16,BISEL=.05;
+    function shapePlaca(w,h,r){
+      var s=new THREE.Shape();
+      var x=-w/2,y=-h/2;
+      s.moveTo(x+r,y);
+      s.lineTo(x+w-r,y);
+      s.quadraticCurveTo(x+w,y,x+w,y+r);
+      s.lineTo(x+w,y+h-r);
+      s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+      s.lineTo(x+r,y+h);
+      s.quadraticCurveTo(x,y+h,x,y+h-r);
+      s.lineTo(x,y+r);
+      s.quadraticCurveTo(x,y,x+r,y);
+      return s;
+    }
+    function canvasOuro(desenha){
+      var c=document.createElement("canvas");
+      c.width=1024;c.height=Math.round(1024*PH/PW);
+      var x=c.getContext("2d");
+      var g=x.createLinearGradient(0,0,0,c.height);
+      g.addColorStop(0,"#F8F1DC");g.addColorStop(.42,"#EADDB6");
+      g.addColorStop(.75,"#CFC091");g.addColorStop(1,"#B0A070");
+      x.fillStyle=g;x.fillRect(0,0,c.width,c.height);
+      for(var i=0;i<340;i++){
+        x.globalAlpha=.05;
+        x.fillStyle=Math.random()>.5?"#FFFFFF":"#7d6f4a";
+        x.fillRect(0,Math.random()*c.height,c.width,Math.random()*1.4);
+      }
+      x.globalAlpha=1;
+      var rg=x.createRadialGradient(c.width*.25,c.height*.1,0,c.width*.25,c.height*.1,c.width*.5);
+      rg.addColorStop(0,"rgba(255,255,250,.4)");rg.addColorStop(1,"rgba(0,0,0,0)");
+      x.fillStyle=rg;x.fillRect(0,0,c.width,c.height);
+      if(desenha)desenha(x,c.width,c.height);
+      var t=new THREE.CanvasTexture(c);
+      t.encoding=THREE.sRGBEncoding;
+      t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+      t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;
+      t.repeat.set(1/PW,1/PH);
+      t.offset.set(.5,.5);
+      return t;
+    }
+    var matLados=new THREE.MeshStandardMaterial({color:0xDCCFA3,metalness:.95,roughness:.26});
+    function fazPlaca(tex){
+      var geo=new THREE.ExtrudeGeometry(
+        shapePlaca(PW-BISEL*2,PH-BISEL*2,RAIO),
+        {depth:PROF,bevelEnabled:true,bevelThickness:BISEL,bevelSize:BISEL,bevelSegments:4,curveSegments:24}
+      );
+      geo.center();
+      return new THREE.Mesh(geo,[new THREE.MeshStandardMaterial({map:tex,metalness:.9,roughness:.32}),matLados]);
+    }
+    var pin=new THREE.Group();
+    scene.add(pin);
+    var logo=new Image();
+    logo.onload=logo.onerror=function(){
+      var ok=logo.naturalWidth>0;
+      var frente=canvasOuro(function(x,w,h){
+        if(ok){
+          var lw=w*.88,lh=lw*(logo.naturalHeight/logo.naturalWidth);
+          if(lh>h*.82){lh=h*.82;lw=lh*(logo.naturalWidth/logo.naturalHeight);}
+          x.drawImage(logo,(w-lw)/2,(h-lh)/2,lw,lh);
+        } else {
+          x.fillStyle="#C10F45";
+          x.font="700 "+Math.round(h*.42)+"px 'Futura','Avenir Next',sans-serif";
+          x.textAlign="center";x.textBaseline="middle";
+          x.fillText("Rotaract",w/2,h/2);
+        }
+      });
+      var verso=canvasOuro(function(x,w,h){
+        x.fillStyle="rgba(122,90,26,.9)";
+        x.textAlign="center";
+        x.font="600 "+Math.round(h*.155)+"px 'Futura','Avenir Next',sans-serif";
+        x.shadowColor="rgba(255,243,196,.55)";x.shadowOffsetY=2;
+        x.fillText("R O T A R A C T   C L U B",w/2,h*.30);
+        x.fillText("J A R A G U Á   D O   S U L",w/2,h*.52);
+        x.font="500 "+Math.round(h*.115)+"px 'Futura','Avenir Next',sans-serif";
+        x.fillStyle="rgba(122,90,26,.75)";
+        x.fillText("C A Ç A   A O   P R I M E I R O   P I N",w/2,h*.76);
+      });
+      pin.add(fazPlaca(frente));
+      var geoV=new THREE.ExtrudeGeometry(
+        shapePlaca(PW-BISEL*2-.02,PH-BISEL*2-.02,RAIO),
+        {depth:.01,bevelEnabled:false,curveSegments:24}
+      );
+      geoV.center();
+      var mV=new THREE.Mesh(geoV,new THREE.MeshStandardMaterial({map:verso,metalness:.9,roughness:.38}));
+      mV.rotation.y=Math.PI;
+      mV.position.z=-(PROF/2+BISEL+.006);
+      pin.add(mV);
+      tocar("fanfarra");
+    };
+    logo.src="images/Rotaract - Logo Cranberry Sem Fundo (centralizado).png";
+
+    scene.add(new THREE.AmbientLight(0x2e2312,.9));
+    var luz=new THREE.DirectionalLight(0xFFF9E8,1.15);
+    luz.position.set(2.5,3,4);
+    scene.add(luz);
+    var luzM=new THREE.PointLight(0xD4145A,.22);
+    luzM.position.set(-4,-1.5,2.5);
+    scene.add(luzM);
+
+    var GIRO=reduz?0:.012;
+    var velX=0,velY=GIRO,dragP=null,t0=0;
+    cv.addEventListener("pointerdown",function(e){
+      cv.setPointerCapture(e.pointerId);
+      dragP={x:e.clientX,y:e.clientY};
+    });
+    cv.addEventListener("pointermove",function(e){
+      if(!dragP) return;
+      velY=(e.clientX-dragP.x)*.0035;
+      velX=(e.clientY-dragP.y)*.0035;
+      pin.rotation.y+=velY;
+      pin.rotation.x=Math.max(-1.1,Math.min(1.1,pin.rotation.x+velX));
+      dragP={x:e.clientX,y:e.clientY};
+    });
+    function solta(){ dragP=null; }
+    cv.addEventListener("pointerup",solta);
+    cv.addEventListener("pointercancel",solta);
+    (function anima(ts){
+      t0=ts||0;
+      if(!dragP){
+        pin.rotation.y+=velY;
+        pin.rotation.x=Math.max(-1.1,Math.min(1.1,pin.rotation.x+velX));
+        velY+=(GIRO-velY)*.015;
+        velX+=(0-velX)*.03;
+        pin.rotation.x+=(0-pin.rotation.x)*.006;
+      }
+      pin.position.y=reduz?0:Math.sin(t0*.0012)*.07;
+      renderer.render(scene,camera);
+      requestAnimationFrame(anima);
+    })();
+    addEventListener("resize",function(){
+      W=palco.clientWidth;H=palco.clientHeight;
+      camera.aspect=W/H;
+      camera.updateProjectionMatrix();
+      renderer.setSize(W,H,false);
+    });
   }
 })();
 
