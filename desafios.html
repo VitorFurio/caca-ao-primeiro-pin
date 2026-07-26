@@ -324,8 +324,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 }
 .pin-chamada{text-align:center}
 #pin-palco{
-  position:relative;width:min(86vw,440px);height:min(54svh,430px);
-  margin:20px auto 0;touch-action:none;
+  position:relative;width:min(86vw,440px);height:min(48svh,400px);
+  margin:20px auto 0;
+  touch-action:pan-y; /* girar é horizontal; a rolagem vertical passa livre */
 }
 #pin-palco::before{
   content:"";position:absolute;inset:4%;border-radius:50%;pointer-events:none;
@@ -639,8 +640,19 @@ function ligarSom(liga){
   if(c) masterGain.gain.setTargetAtTime(liga?1.0:0,c.currentTime,.05);
 }
 function armaSom(){ if(!somArmado){ somArmado=true; ligarSom(true); } }
-/* som sempre ativo: o primeiro toque em qualquer lugar já o desperta */
-document.addEventListener("pointerdown",function(){ armaSom(); },{once:true,passive:true});
+/* som sempre ativo e à prova de silenciamentos do iOS:
+   - qualquer toque arma e RE-ACORDA o contexto se ele foi suspenso
+   - voltar de segundo plano também re-acorda */
+document.addEventListener("pointerdown",function(){
+  armaSom();
+  if(actx && actx.state==="suspended") actx.resume();
+},{passive:true});
+document.addEventListener("visibilitychange",function(){
+  if(!document.hidden && actx && somLigado) actx.resume();
+});
+window.addEventListener("pageshow",function(){
+  if(actx && somLigado) actx.resume();
+});
 /* o cintilar de metal segue o dedo pelo app inteiro */
 (function(){
   var bg=$("brilho-global");
@@ -660,17 +672,81 @@ function envAud(g,t0,a,pico,dur){
   g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
 }
 var SONS={
-  chama:function(c,t){ // sopro suave da vela
-    var s=c.createBufferSource(); s.buffer=ruido(.3);
-    var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=650;
-    var g=c.createGain(); envAud(g,t,.05,.25,.28);
-    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.3);
+  vento:function(c,t){ // a brisa que acompanha a luz na escuridão
+    var s=c.createBufferSource(); s.buffer=ruido(.5);
+    var f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=.7;
+    f.frequency.setValueAtTime(420,t);
+    f.frequency.exponentialRampToValueAtTime(950,t+.4);
+    var g=c.createGain(); envAud(g,t,.12,.16,.48);
+    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.52);
   },
-  rasgo:function(c,t){ // papel rasgando
-    var s=c.createBufferSource(); s.buffer=ruido(.16);
-    var f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=950; f.Q.value=.6;
-    var g=c.createGain(); envAud(g,t,.01,.65,.15);
-    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.17);
+  fogo:function(c,t){ // a chama acende: sopro quente + estalos de lenha
+    var s=c.createBufferSource(); s.buffer=ruido(.8);
+    var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=750;
+    var g=c.createGain(); envAud(g,t,.09,.42,.75);
+    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.82);
+    for(var i=0;i<5;i++){
+      var tt=t+.05+Math.random()*.45;
+      var p=c.createBufferSource(); p.buffer=ruido(.03);
+      var hp=c.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=2500;
+      var pg=c.createGain(); envAud(pg,tt,.004,.22,.03);
+      p.connect(hp); hp.connect(pg); pg.connect(masterGain); p.start(tt); p.stop(tt+.04);
+    }
+  },
+  papelFolha:function(c,t){ // folha de papel deslizando
+    var s=c.createBufferSource(); s.buffer=ruido(.5);
+    var f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=1350; f.Q.value=.5;
+    var g=c.createGain(); envAud(g,t,.06,.4,.48);
+    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.52);
+    var s2=c.createBufferSource(); s2.buffer=ruido(.3);
+    var h=c.createBiquadFilter(); h.type="highpass"; h.frequency.value=3200;
+    var g2=c.createGain(); envAud(g2,t+.04,.05,.14,.3);
+    s2.connect(h); h.connect(g2); g2.connect(masterGain); s2.start(t+.04); s2.stop(t+.38);
+  },
+  trompa:function(c,t,grau){ // trompas do coliseu: uma nota por etapa da obra
+    var fr=[261.63,329.63,392.0][grau||0];
+    [1,1.006].forEach(function(d){
+      var o=c.createOscillator(); o.type="sawtooth"; o.frequency.value=fr*d;
+      var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=1500;
+      var g=c.createGain(); envAud(g,t,.04,.15,.65);
+      o.connect(f); f.connect(g); g.connect(masterGain); o.start(t); o.stop(t+.7);
+    });
+  },
+  triunfo:function(c,t){ // o coliseu celebra: tímpanos, metais e multidão
+    [0,.22,.44].forEach(function(off,i){
+      var o=c.createOscillator(); o.type="sine";
+      o.frequency.setValueAtTime(i<2?82:65,t+off);
+      o.frequency.exponentialRampToValueAtTime(45,t+off+.28);
+      var g=c.createGain(); envAud(g,t+off,.006,.85,.4);
+      o.connect(g); g.connect(masterGain); o.start(t+off); o.stop(t+off+.45);
+      var s=c.createBufferSource(); s.buffer=ruido(.12);
+      var lp=c.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=300;
+      var sg=c.createGain(); envAud(sg,t+off,.004,.3,.12);
+      s.connect(lp); lp.connect(sg); sg.connect(masterGain); s.start(t+off); s.stop(t+off+.14);
+    });
+    [[261.63,0],[329.63,.2],[392,.4]].forEach(function(n){
+      [1,1.006].forEach(function(d){
+        var o=c.createOscillator(); o.type="sawtooth"; o.frequency.value=n[0]*d;
+        var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=1700;
+        var g=c.createGain(); envAud(g,t+n[1],.05,.14,.5);
+        o.connect(f); f.connect(g); g.connect(masterGain); o.start(t+n[1]); o.stop(t+n[1]+.55);
+      });
+    });
+    [523.25,659.25,784].forEach(function(fr){
+      [1,1.007].forEach(function(d){
+        var o=c.createOscillator(); o.type="sawtooth"; o.frequency.value=fr*d;
+        var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=2100;
+        var g=c.createGain(); envAud(g,t+.62,.08,.12,2.0);
+        o.connect(f); f.connect(g); g.connect(masterGain); o.start(t+.62); o.stop(t+2.75);
+      });
+    });
+    var m=c.createBufferSource(); m.buffer=ruido(2.4);
+    var bp=c.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=850; bp.Q.value=.4;
+    var mg=c.createGain();
+    mg.gain.setValueAtTime(.0001,t);
+    mg.gain.linearRampToValueAtTime(.22,t+.9);
+    mg.gain.exponentialRampToValueAtTime(.0001,t+2.5);
+    m.connect(bp); bp.connect(mg); mg.connect(masterGain); m.start(t); m.stop(t+2.6);
   },
   tinta:function(c,t){ // gota de tinta
     var o=c.createOscillator(); o.type="sine";
@@ -747,10 +823,10 @@ var SONS={
     s.start(t+.52); s.stop(t+1.1);
   }
 };
-function tocar(nome){
+function tocar(nome,arg){
   if(!somLigado) return;
   var c=audio(); if(!c) return;
-  SONS[nome] && SONS[nome](c,c.currentTime);
+  SONS[nome] && SONS[nome](c,c.currentTime,arg);
 }
 
 /* ==========================================================
@@ -775,8 +851,12 @@ function corDoMundo(p){
   t=Math.max(0,Math.min(1,t));
   function mix(c1,c2){return "rgb("+Math.round(lerp(c1[0],c2[0],t))+","+Math.round(lerp(c1[1],c2[1],t))+","+Math.round(lerp(c1[2],c2[2],t))+")";}
   /* pinta direto no elemento: repaint garantido em qualquer motor */
-  mundoEl.style.background="radial-gradient(130% 90% at 50% 18%,"+mix(A[1],B[1])+" 0%,"+mix(A[2],B[2])+" 75%)";
+  var chao=mix(A[2],B[2]);
+  mundoEl.style.background="radial-gradient(130% 90% at 50% 18%,"+mix(A[1],B[1])+" 0%,"+chao+" 75%)";
   fogueiraEl.style.opacity=lerp(A[3],B[3],t).toFixed(3);
+  /* o html acompanha o chão: nenhuma tarja escura quando a barra do
+     navegador recolhe/estica o viewport durante a rolagem */
+  document.documentElement.style.backgroundColor=chao;
 }
 function aoRolarGlobal(){
   var se=document.scrollingElement||document.documentElement;
@@ -884,11 +964,20 @@ if(window.gsap && window.ScrollTrigger){
     texto.style.setProperty("--vx",((cx-r.left)/r.width*100).toFixed(1)+"%");
     texto.style.setProperty("--vy",((cy-r.top)/r.height*100).toFixed(1)+"%");
   }
-  sec.addEventListener("pointermove",function(e){ move(e.clientX,e.clientY); },{passive:true});
+  // a luz em movimento sopra como vento na escuridão
+  var ultVento=0,vx0=0,vy0=0;
+  sec.addEventListener("pointermove",function(e){
+    move(e.clientX,e.clientY);
+    var agora=performance.now();
+    if(agora-ultVento>380 && Math.hypot(e.clientX-vx0,e.clientY-vy0)>26){
+      ultVento=agora; vx0=e.clientX; vy0=e.clientY;
+      tocar("vento");
+    }
+  },{passive:true});
   sec.addEventListener("pointerdown",function(e){ move(e.clientX,e.clientY); },{passive:true});
-  // um toque limpo acende as palavras de vez — o objetivo fica visível
+  // um toque limpo acende as palavras de vez — com som de fogo
   soToque(sec,function(e){
-    armaSom(); tocar("chama");
+    armaSom(); tocar("fogo");
     if(!aceso){
       aceso=true;
       move(e.clientX,e.clientY);
@@ -909,30 +998,42 @@ if(window.gsap && window.ScrollTrigger){
    ========================================================== */
 (function(){
   var area=$("carta-area"),env=$("envelope"),carta=$("carta");
-  var drag=null,rasgada=false,ultRasgoSom=100;
-  // abertura lateral (a seta do selo aponta a direção do deslize)
-  function corte(pct){
-    pct=Math.max(0,Math.min(100,pct));
-    env.style.clipPath="polygon(0 0,"+pct+"% 0,"+pct+"% 100%,0 100%)";
-    if(ultRasgoSom-pct>=18){ ultRasgoSom=pct; tocar("rasgo"); }
-    if(pct<10 && !rasgada){
-      rasgada=true;
-      env.style.display="none";
-      tocar("rasgo");
-      vibrar([10,30,14]);
-    }
-  }
+  var drag=null,rasgada=false;
+  // um único deslize para a esquerda retira a carta do envelope,
+  // com som de folha de papel — fluido, sem precisar atravessar a tela
+  env.style.willChange="transform";
   env.addEventListener("pointerdown",function(e){
+    if(rasgada) return;
     env.setPointerCapture(e.pointerId);
-    drag={id:e.pointerId};
+    drag={id:e.pointerId,x0:e.clientX,t0:performance.now()};
+    env.style.transition="none";
     armaSom();
   });
   env.addEventListener("pointermove",function(e){
     if(!drag||e.pointerId!==drag.id) return;
-    var r=area.getBoundingClientRect();
-    corte((e.clientX-r.left)/r.width*100);
+    var dx=Math.min(0,e.clientX-drag.x0);
+    env.style.transform="translateX("+dx+"px) rotate("+(dx*.012)+"deg)";
   });
-  env.addEventListener("pointerup",function(){ drag=null; });
+  function soltaEnv(e){
+    if(!drag||e.pointerId!==drag.id) return;
+    var dx=e.clientX-drag.x0;
+    var vel=dx/Math.max(1,performance.now()-drag.t0);
+    drag=null;
+    if(dx<-60 || vel<-.35){
+      rasgada=true;
+      tocar("papelFolha");
+      vibrar([10,26,12]);
+      env.style.transition="transform .5s cubic-bezier(.22,.61,.36,1),opacity .5s";
+      env.style.transform="translateX(-125%) rotate(-6deg)";
+      env.style.opacity=".85";
+      setTimeout(function(){ env.style.display="none"; },520);
+    } else {
+      env.style.transition="transform .35s cubic-bezier(.34,1.56,.64,1)";
+      env.style.transform="translateX(0)";
+    }
+  }
+  env.addEventListener("pointerup",soltaEnv);
+  env.addEventListener("pointercancel",soltaEnv);
   soToque(carta,function(e){
     if(!rasgada) return;
     armaSom();
@@ -1101,12 +1202,13 @@ if(window.gsap && window.ScrollTrigger){
         poeira(el);
       });
       tocar("pedra");
+      tocar("trompa",posta);   // trompas do coliseu sobem a cada etapa
       vibrar(10);
       posta++;
       if(posta>=grupos.length){
         alvo.classList.add("pronta");
         $("gravacao").classList.add("aparece");
-        tocar("fanfarra");
+        tocar("triunfo");
         vibrar([15,50,20,50,80]);
         var mr=$("monumento").getBoundingClientRect();
         [[.3,.2],[.7,.15],[.5,.05]].forEach(function(f,i){
@@ -1347,20 +1449,19 @@ if(window.gsap && window.ScrollTrigger){
     luzM.position.set(-4,-1.5,2.5);
     scene.add(luzM);
 
+    /* girar é só horizontal (mais sensível) — deslizar para cima/baixo
+       rola a página normalmente, sem prender o dedo */
     var GIRO=reduz?0:.012;
-    var velX=0,velY=GIRO,dragP=null,t0=0;
+    var velY=GIRO,dragP=null,t0=0;
     cv.addEventListener("pointerdown",function(e){
-      cv.setPointerCapture(e.pointerId);
-      dragP={x:e.clientX,y:e.clientY};
+      dragP={x:e.clientX};
     });
     cv.addEventListener("pointermove",function(e){
       if(!dragP) return;
-      velY=(e.clientX-dragP.x)*.0035;
-      velX=(e.clientY-dragP.y)*.0035;
+      velY=(e.clientX-dragP.x)*.006;
       pin.rotation.y+=velY;
-      pin.rotation.x=Math.max(-1.1,Math.min(1.1,pin.rotation.x+velX));
-      dragP={x:e.clientX,y:e.clientY};
-    });
+      dragP={x:e.clientX};
+    },{passive:true});
     function solta(){ dragP=null; }
     cv.addEventListener("pointerup",solta);
     cv.addEventListener("pointercancel",solta);
@@ -1368,11 +1469,9 @@ if(window.gsap && window.ScrollTrigger){
       t0=ts||0;
       if(!dragP){
         pin.rotation.y+=velY;
-        pin.rotation.x=Math.max(-1.1,Math.min(1.1,pin.rotation.x+velX));
         velY+=(GIRO-velY)*.015;
-        velX+=(0-velX)*.03;
-        pin.rotation.x+=(0-pin.rotation.x)*.006;
       }
+      pin.rotation.x+=(0-pin.rotation.x)*.01;
       pin.position.y=reduz?0:Math.sin(t0*.0012)*.07;
       renderer.render(scene,camera);
       requestAnimationFrame(anima);
