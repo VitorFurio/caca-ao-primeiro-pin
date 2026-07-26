@@ -163,14 +163,35 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   padding:0 28px;text-align:center;
   max-width:34ch;
 }
-.aviso-som svg{
-  width:36px;height:36px;stroke:var(--gold-lit);
-  filter:drop-shadow(0 0 12px rgba(239,206,121,.5));
-  animation:pulsaSom 2.4s ease-in-out infinite;
+/* o switch da trilha sonora — o primeiro rito da jornada */
+.som-switch{
+  position:relative;width:88px;height:44px;border-radius:26px;
+  background:rgba(20,17,16,.85);
+  border:1px solid rgba(200,160,53,.45);
+  transition:background .45s,border-color .45s,box-shadow .45s;
+  animation:pulsaSom 2.6s ease-in-out infinite;
+}
+.som-switch .nob{
+  position:absolute;left:5px;top:5px;width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(150deg,var(--parch-1),var(--parch-3));
+  box-shadow:0 3px 10px rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .5s cubic-bezier(.34,1.56,.64,1),background .45s;
+}
+.som-switch svg{width:16px;height:16px;stroke:var(--ink);transition:stroke .4s}
+.som-switch.ligado{
+  background:rgba(200,160,53,.28);
+  border-color:var(--gold-lit);
+  box-shadow:0 0 28px -4px rgba(239,206,121,.65);
+  animation:none;
+}
+.som-switch.ligado .nob{
+  transform:translateX(44px);
+  background:linear-gradient(150deg,#FFF6DA,var(--gold-lit));
 }
 @keyframes pulsaSom{
-  0%,100%{opacity:.72;transform:scale(1)}
-  50%{opacity:1;transform:scale(1.1)}
+  0%,100%{box-shadow:0 0 0 0 rgba(239,206,121,.0)}
+  50%{box-shadow:0 0 22px 2px rgba(239,206,121,.35)}
 }
 .aviso-som p{
   font-family:var(--util);font-size:10px;letter-spacing:.28em;text-transform:uppercase;
@@ -441,12 +462,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 </header>
 
 <div class="aviso-som">
-  <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="rgba(239,206,121,.14)"/>
-    <path d="M16.5 8.5a5 5 0 0 1 0 7"/>
-    <path d="M19 6a8.5 8.5 0 0 1 0 12"/>
-  </svg>
-  <p><b>Ative o som e aumente o volume</b> do seu celular — esta jornada tem trilha sonora.</p>
+  <button class="som-switch" id="som-toggle" aria-pressed="false" aria-label="Ligar a trilha sonora">
+    <span class="nob">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 9v6h4l5 4V5L8 9H4z"/>
+        <path d="M16.5 8.5a5 5 0 0 1 0 7"/>
+      </svg>
+    </span>
+  </button>
+  <p id="som-texto"><b>Toque para ligar a trilha sonora</b> — e aumente o volume do seu celular.</p>
 </div>
 
 <div class="cenario" aria-hidden="true">
@@ -779,6 +803,38 @@ document.addEventListener("pointerdown",function(){
 document.addEventListener("visibilitychange",function(){ if(!document.hidden) insistirRetomada(); });
 window.addEventListener("pageshow",insistirRetomada);
 window.addEventListener("focus",insistirRetomada);
+/* o switch da trilha sonora: liga com brinde, desliga se quiser,
+   e reflete sozinho quando o som já foi armado por outro toque */
+(function(){
+  var bt=$("som-toggle"),tx=$("som-texto");
+  function reflete(){
+    bt.classList.toggle("ligado",somLigado);
+    bt.setAttribute("aria-pressed",somLigado?"true":"false");
+    bt.setAttribute("aria-label",somLigado?"Desligar a trilha sonora":"Ligar a trilha sonora");
+    tx.innerHTML=somLigado
+      ? "<b>Som ligado</b> — aumente o volume e boa caçada."
+      : "<b>Toque para ligar a trilha sonora</b> — e aumente o volume do seu celular.";
+  }
+  // o listener global arma o som no pointerdown ANTES do click chegar:
+  // marca se foi ESTE gesto que armou, para não desligar sem querer
+  var armouNesteGesto=false;
+  bt.addEventListener("pointerdown",function(){ armouNesteGesto=!somArmado; });
+  bt.addEventListener("click",function(e){
+    e.stopPropagation();
+    if(armouNesteGesto){
+      armouNesteGesto=false;
+      if(!somLigado) ligarSom(true);
+      tocar("brilho"); vibrar(10);
+    }
+    else if(somLigado){ ligarSom(false); }
+    else { ligarSom(true); tocar("brilho"); vibrar(10); }
+    reflete();
+  });
+  // se qualquer outro toque armou o som primeiro, o switch acompanha
+  document.addEventListener("pointerdown",function(){
+    setTimeout(reflete,60);
+  },{passive:true});
+})();
 /* o cintilar de metal segue o dedo pelo app inteiro */
 (function(){
   var bg=$("brilho-global");
