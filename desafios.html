@@ -34,11 +34,13 @@ html{
   background:var(--void);
   /* impede o Safari de inflar textos de forma desigual no zoom out */
   -webkit-text-size-adjust:100%;text-size-adjust:100%;
-  /* nada vaza na horizontal: cenários largos são recortados na raiz */
+  /* nada vaza na horizontal — recorte SÓ na raiz, para o body
+     continuar sem rolagem própria (senão o medidor de calor quebra) */
   overflow-x:hidden;overflow-x:clip;
 }
 body{
-  background:var(--void);
+  /* SEM background aqui: com o html tendo fundo próprio, um fundo no body
+     cobriria as camadas de z negativo (#mundo e #brasas) */
   color:var(--parch-1);font-family:var(--body);
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;overflow-x:clip;
@@ -50,12 +52,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
    ============================================================ */
 #mundo{
   position:fixed;inset:0;z-index:-3;
-  background:radial-gradient(130% 90% at 50% 18%,var(--ceu) 0%,var(--chao) 75%);
+  background:radial-gradient(130% 90% at 50% 18%,#0B0A09 0%,#0B0A09 75%);
+  /* o gradiente é repintado via JS (estilo inline) — variável CSS em
+     camada fixa não invalida a pintura em alguns motores */
 }
-#mundo::after{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:55%;
-  background:radial-gradient(120% 100% at 50% 108%,rgba(239,166,60,.55),rgba(168,23,51,.12) 55%,transparent 75%);
-  opacity:var(--brasa-glow);
+#fogueira{
+  position:absolute;left:0;right:0;bottom:0;height:68%;
+  background:radial-gradient(120% 100% at 50% 108%,rgba(239,180,70,.7),rgba(168,23,51,.16) 55%,transparent 78%);
+  opacity:0;
 }
 #brasas{position:fixed;inset:0;z-index:-2;pointer-events:none}
 #trilha{position:fixed;left:max(10px,env(safe-area-inset-left));top:0;bottom:0;width:3px;z-index:40;background:rgba(239,221,184,.06)}
@@ -298,7 +302,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 #premio::before{ /* auréola dourada que envolve a chegada */
   content:"";position:absolute;left:50%;bottom:6%;width:160vw;height:110svh;
   transform:translateX(-50%);pointer-events:none;
-  background:radial-gradient(45% 45% at 50% 60%,rgba(239,206,121,.20),rgba(233,169,60,.08) 55%,transparent 75%);
+  background:radial-gradient(45% 45% at 50% 60%,rgba(239,206,121,.30),rgba(233,169,60,.13) 55%,transparent 75%);
 }
 .pin-chamada{text-align:center}
 #pin-palco{
@@ -321,7 +325,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 </head>
 <body>
 
-<div id="mundo"></div>
+<div id="mundo"><div id="fogueira"></div></div>
 <canvas id="brasas"></canvas>
 <div id="trilha"><i id="trilha-fill"></i></div>
 
@@ -693,10 +697,11 @@ var PALETA=[
   [0.16,[18,13,8],   [11,10,9],   0.04],
   [0.34,[26,17,9],   [13,10,7],   0.10],
   [0.52,[42,22,8],   [18,11,6],   0.30],
-  [0.72,[58,36,16],  [26,17,9],   0.45],
-  [0.88,[80,57,25],  [38,25,10],  0.62],
-  [1.00,[108,80,38], [54,38,16],  0.85]   /* o pin: o ponto mais brilhante do mapa */
+  [0.72,[58,36,16],  [28,19,10],  0.45],
+  [0.88,[92,68,32],  [52,36,16],  0.75],
+  [1.00,[138,106,54],[86,62,30],  1.00]   /* o pin: o ponto mais brilhante do mapa */
 ];
+var mundoEl=$("mundo"),fogueiraEl=$("fogueira");
 function corDoMundo(p){
   var i=1;
   while(i<PALETA.length-1 && PALETA[i][0]<p) i++;
@@ -704,18 +709,20 @@ function corDoMundo(p){
   var t=(p-A[0])/(B[0]-A[0]||1);
   t=Math.max(0,Math.min(1,t));
   function mix(c1,c2){return "rgb("+Math.round(lerp(c1[0],c2[0],t))+","+Math.round(lerp(c1[1],c2[1],t))+","+Math.round(lerp(c1[2],c2[2],t))+")";}
-  document.documentElement.style.setProperty("--ceu",mix(A[1],B[1]));
-  document.documentElement.style.setProperty("--chao",mix(A[2],B[2]));
-  document.documentElement.style.setProperty("--brasa-glow",lerp(A[3],B[3],t).toFixed(3));
+  /* pinta direto no elemento: repaint garantido em qualquer motor */
+  mundoEl.style.background="radial-gradient(130% 90% at 50% 18%,"+mix(A[1],B[1])+" 0%,"+mix(A[2],B[2])+" 75%)";
+  fogueiraEl.style.opacity=lerp(A[3],B[3],t).toFixed(3);
 }
 function aoRolarGlobal(){
-  var h=document.documentElement;
-  var p=h.scrollTop/(h.scrollHeight-h.clientHeight||1);
-  CALOR=p;
-  corDoMundo(p);
-  $("trilha-fill").style.height=(p*100)+"%";
+  var se=document.scrollingElement||document.documentElement;
+  var topo=(window.scrollY!==undefined?window.scrollY:se.scrollTop);
+  var p=topo/((se.scrollHeight-innerHeight)||1);
+  CALOR=Math.max(0,Math.min(1,p));
+  corDoMundo(CALOR);
+  $("trilha-fill").style.height=(CALOR*100)+"%";
 }
-document.addEventListener("scroll",function(){ requestAnimationFrame(aoRolarGlobal); },{passive:true});
+/* capture:true pega a rolagem venha ela de onde vier (janela ou body) */
+document.addEventListener("scroll",function(){ requestAnimationFrame(aoRolarGlobal); },{passive:true,capture:true});
 aoRolarGlobal();
 
 /* ==========================================================
@@ -744,7 +751,7 @@ aoRolarGlobal();
   };
   (function tick(){
     ctx.clearRect(0,0,W,H);
-    var alvo=Math.round(4+CALOR*46);
+    var alvo=Math.round(4+CALOR*64);
     while(parts.length<alvo) parts.push(nova());
     parts.forEach(function(p){
       p.x+=p.vx+Math.sin(p.y*.01)*.3;
@@ -752,9 +759,9 @@ aoRolarGlobal();
       p.vida-=.004+CALOR*.004;
       if(p.y<-12||p.vida<=0){Object.assign(p,nova());}
       var g=Math.round(lerp(221,166,CALOR)),b=Math.round(lerp(184,60,CALOR));
-      ctx.globalAlpha=Math.max(0,Math.min(.75,p.vida*(.25+CALOR*.75)));
+      ctx.globalAlpha=Math.max(0,Math.min(.95,p.vida*(.3+CALOR*.95)));
       ctx.fillStyle="rgb(239,"+g+","+b+")";
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r*(1+CALOR*.7),0,Math.PI*2);ctx.fill();
     });
     // fogos: halo + núcleo por partícula — barato, sem box-shadow nem DOM
     for(var i=fogos.length-1;i>=0;i--){
