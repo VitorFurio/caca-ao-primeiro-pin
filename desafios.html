@@ -122,7 +122,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 .vela-texto{
   position:relative;
   font-family:var(--display);font-weight:400;
-  font-size:clamp(26px,7vw,44px);line-height:1.5;letter-spacing:.04em;
+  font-size:clamp(22px,5.8vw,36px);line-height:1.55;letter-spacing:.04em;
   color:var(--gold-lit);
   text-shadow:0 0 14px rgba(239,206,121,.75),0 0 44px rgba(200,160,53,.4);
   -webkit-mask-image:radial-gradient(circle var(--raio,140px) at var(--vx,-20%) var(--vy,50%),#000 0%,#000 52%,transparent 78%);
@@ -132,7 +132,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 .vela-fantasma{
   position:absolute;inset:0;pointer-events:none;
   font-family:var(--display);font-weight:400;
-  font-size:clamp(26px,7vw,44px);line-height:1.5;letter-spacing:.04em;
+  font-size:clamp(22px,5.8vw,36px);line-height:1.55;letter-spacing:.04em;
   color:rgba(239,221,184,.05);
 }
 
@@ -150,7 +150,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   display:flex;flex-direction:column;justify-content:center;gap:10px;
 }
 .carta .selo-topo{font-family:var(--util);font-size:8.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft)}
-.carta .frase{font-family:var(--hand);font-size:clamp(16px,4.4vw,21px);line-height:1.55}
+.carta .frase{font-family:var(--hand);font-size:clamp(14.5px,4vw,19px);line-height:1.55}
 .carta .assin{font-family:var(--util);font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
 .envelope{
   position:absolute;inset:0;z-index:6;border-radius:3px;
@@ -315,12 +315,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <!-- ================= D1 · A TRAVESSIA ================= -->
 <section class="desafio" id="d1">
   <div class="wrap">
-    <div class="rotulo">Desafio 01 · A Travessia</div>
+    <div class="rotulo">Desafio 01 · O Período</div>
     <div style="position:relative">
-      <div class="vela-fantasma" aria-hidden="true">Noventa dias.<br>É o tempo de uma travessia.<br>Reunião após reunião, você descobre se este é o seu lugar.</div>
-      <div class="vela-texto" id="vela-texto">Noventa dias.<br>É o tempo de uma <b>travessia</b>.<br>Reunião após reunião, você descobre se este é o <b>seu lugar</b>.</div>
+      <div class="vela-fantasma" aria-hidden="true">Participe das reuniões por no mínimo 90 dias. O Rotaract exige compromisso e frequência — use esse tempo para conhecer o movimento e descobrir se é o que você busca.</div>
+      <div class="vela-texto" id="vela-texto">Participe das reuniões por no mínimo <b>90 dias</b>. O Rotaract exige <b>compromisso</b> e <b>frequência</b> — use esse tempo para conhecer o movimento e descobrir se é <b>o que você busca</b>.</div>
     </div>
-    <div class="dica">deslize ou toque — sua luz revela as palavras</div>
+    <div class="dica">deslize ou toque — sua luz revela as palavras<br>em transferência de outro clube? seu período é reduzido: você já conhece o movimento</div>
   </div>
 </section>
 
@@ -339,7 +339,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
     <div class="carta-area" id="carta-area">
       <div class="carta" id="carta">
         <div class="selo-topo">Rotaract Club de Jaraguá do Sul</div>
-        <div class="frase">"Esteja em <b>6 de cada 10</b> reuniões. Cada presença é uma marca sua na história do clube — como tinta fresca no papel."</div>
+        <div class="frase">"Alcance <b>60% de frequência</b> nos seus 90 dias. Se faltar, recupere na <b>família rotária</b> — Rotary, Rotaract e Interact. Cada presença é uma marca sua no clube."</div>
         <div class="assin">— toque na carta: sua marca aparece, o papel a absorve</div>
       </div>
       <div class="envelope" id="envelope">
@@ -362,7 +362,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="wrap" id="forja-stage" style="text-align:center">
     <div class="rotulo" style="justify-content:center">Desafio 03 · O Treino</div>
     <h2>A mensagem está<br>no ferro bruto</h2>
-    <div class="forja-msg" id="forja-msg" aria-label="Participe de 1 treinamento — do clube ou do distrito. É na forja que o ferro vira ferramenta."></div>
+    <div class="forja-msg" id="forja-msg" aria-label="Participe de no mínimo 1 treinamento. É preciso treinar para melhorar — a busca pelo conhecimento leva à excelência. Valem os treinamentos do distrito e do clube."></div>
     <svg class="forja-simbolo" id="forja-simbolo" viewBox="-50 -50 100 100" aria-hidden="true">
       <path d="M-16 6c0-16 7-26 16-26s16 10 16 26"/>
       <path d="M-16 6v10h32V6"/>
@@ -389,8 +389,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
     <div class="n-sol" id="n-sol"></div>
   </div>
   <div class="wrap">
-    <div class="rotulo">Desafio 04 · A Obra</div>
-    <h2>Erga algo que fique<br>de pé sem você</h2>
+    <div class="rotulo">Desafio 04 · A Execução</div>
+    <h2>Nada ensina como<br>pôr a mão na massa</h2>
     <svg id="monumento" viewBox="0 0 320 214" aria-hidden="true">
       <g class="peca" id="pc-base">
         <rect class="pedra" x="26" y="196" width="268" height="12" rx="2"/>
@@ -416,8 +416,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
         <circle class="pedra" cx="160" cy="64" r="7"/>
       </g>
     </svg>
-    <div class="gravacao" id="gravacao">"Participe de 1 projeto ou ação. A cidade é o mapa — deixe-a melhor do que você a encontrou."</div>
-    <div class="dica" id="obra-dica">toque para assentar as pedras — 5 restantes</div>
+    <div class="gravacao" id="gravacao">"Participe de no mínimo 3 projetos ou ações. É pelos projetos que o Rotaract impacta o mundo — e é executando que se entende como eles funcionam."</div>
+    <div class="dica" id="obra-dica">cada projeto ergue uma parte da obra — toque 3 vezes</div>
   </div>
 </section>
 
@@ -628,10 +628,10 @@ if(window.gsap && window.ScrollTrigger){
 (function(){
   var sec=$("d3"),brilho=$("brilho-metal"),stage=$("forja-stage"),dica=$("forja-dica");
   var PEDACOS=[
-    "Participe de 1 treinamento — ",
-    "do clube ou do distrito. ",
-    "É na forja que o ferro ",
-    "vira ferramenta."
+    "Participe de no mínimo 1 treinamento. ",
+    "É preciso treinar para melhorar — ",
+    "a busca pelo conhecimento leva à excelência. ",
+    "Valem os do distrito e os do clube."
   ];
   var msg=$("forja-msg");
   var els=PEDACOS.map(function(t){
@@ -708,9 +708,12 @@ if(window.gsap && window.ScrollTrigger){
    ========================================================== */
 (function(){
   var sec=$("d4"),noite=$("noite"),dica=$("obra-dica");
-  var pecas=["pc-base","pc-ext","pc-int","pc-arq","pc-front"].map($);
+  // 3 projetos = 3 etapas da obra
+  var grupos=[["pc-base","pc-ext"],["pc-int","pc-arq"],["pc-front"]].map(function(g){ return g.map($); });
+  var todas=[];
+  grupos.forEach(function(g){ todas=todas.concat(g); });
   var posta=0;
-  if(window.gsap) gsap.set(pecas,{y:70,opacity:0});
+  if(window.gsap) gsap.set(todas,{y:70,opacity:0});
 
   function poeira(el){
     if(reduz) return;
@@ -784,15 +787,18 @@ if(window.gsap && window.ScrollTrigger){
 
   sec.addEventListener("pointerdown",function(e){
     var r=sec.getBoundingClientRect();
-    if(posta<pecas.length){
-      var el=pecas[posta];
-      if(window.gsap) gsap.to(el,{y:0,opacity:1,duration:.6,ease:"back.out(1.8)"});
-      else { el.style.opacity=1; el.style.transform="none"; }
-      poeira(el);
+    if(posta<grupos.length){
+      var grupo=grupos[posta];
+      grupo.forEach(function(el,i){
+        if(window.gsap) gsap.to(el,{y:0,opacity:1,duration:.6,delay:i*.12,ease:"back.out(1.8)"});
+        else { el.style.opacity=1; el.style.transform="none"; }
+        poeira(el);
+      });
       vibrar(10);
       posta++;
-      if(posta<pecas.length){
-        dica.textContent="toque para assentar as pedras — "+(pecas.length-posta)+(pecas.length-posta>1?" restantes":" restante");
+      if(posta<grupos.length){
+        var falta=grupos.length-posta;
+        dica.textContent="cada projeto ergue uma parte da obra — "+(falta>1?falta+" projetos restantes":"1 projeto restante");
       } else {
         dica.textContent="a obra está de pé — toque e celebre";
         $("gravacao").classList.add("aparece");
