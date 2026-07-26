@@ -639,7 +639,13 @@ function ligarSom(liga){
   var c=audio();
   if(c) masterGain.gain.setTargetAtTime(liga?1.0:0,c.currentTime,.05);
 }
-function armaSom(){ if(!somArmado){ somArmado=true; ligarSom(true); } }
+function armaSom(){
+  if(!somArmado){
+    somArmado=true;
+    ligarSom(true);
+    iniciarMusica();   // a música tema nasce com o primeiro toque
+  }
+}
 /* som sempre ativo e à prova de silenciamentos do iOS:
    - qualquer toque arma e RE-ACORDA o contexto se ele foi suspenso
    - voltar de segundo plano também re-acorda */
@@ -672,14 +678,6 @@ function envAud(g,t0,a,pico,dur){
   g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
 }
 var SONS={
-  vento:function(c,t){ // a brisa que acompanha a luz na escuridão
-    var s=c.createBufferSource(); s.buffer=ruido(.5);
-    var f=c.createBiquadFilter(); f.type="bandpass"; f.Q.value=.7;
-    f.frequency.setValueAtTime(420,t);
-    f.frequency.exponentialRampToValueAtTime(950,t+.4);
-    var g=c.createGain(); envAud(g,t,.12,.16,.48);
-    s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.52);
-  },
   fogo:function(c,t){ // a chama acende: sopro quente + estalos de lenha
     var s=c.createBufferSource(); s.buffer=ruido(.8);
     var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=750;
@@ -830,6 +828,88 @@ function tocar(nome,arg){
 }
 
 /* ==========================================================
+   MÚSICA TEMA — gerada ao vivo, evolui do mistério ao ouro:
+   colchão de acordes lentos + dedilhados de harpa com eco.
+   O CALOR da jornada abre o filtro e sobe as notas de oitava.
+   ========================================================== */
+var ACORDES=[
+  [110,130.81,164.81],      // Am — o escuro
+  [87.31,110,130.81],       // F
+  [130.81,164.81,196],      // C — a luz
+  [98,123.47,146.83]        // G
+];
+var PENTAS=[
+  [220,261.63,329.63,392,440],
+  [220,261.63,349.23,440,523.25],
+  [261.63,329.63,392,523.25,587.33],
+  [246.94,293.66,392,493.88,587.33]
+];
+var musica={ligada:false,passo:0,prox:0};
+function iniciarMusica(){
+  if(musica.ligada) return;
+  var c=audio(); if(!c) return;
+  musica.ligada=true;
+  musica.g=c.createGain();
+  musica.g.gain.setValueAtTime(.0001,c.currentTime);
+  musica.g.gain.setTargetAtTime(1,c.currentTime,2.5);  // entra em fade
+  musica.g.connect(masterGain);
+  // eco de caverna para os dedilhados
+  var dl=c.createDelay(1); dl.delayTime.value=.42;
+  var fb=c.createGain(); fb.gain.value=.3;
+  var df=c.createBiquadFilter(); df.type="lowpass"; df.frequency.value=1700;
+  dl.connect(fb); fb.connect(df); df.connect(dl);
+  dl.connect(musica.g);
+  musica.eco=dl;
+  musica.prox=c.currentTime+.1;
+  setInterval(agendarMusica,400);
+}
+function padAcorde(t,i){
+  var c=actx;
+  ACORDES[i].forEach(function(fr){
+    [[fr,"triangle",.032],[fr*1.004,"sawtooth",.012]].forEach(function(v){
+      var o=c.createOscillator(); o.type=v[1]; o.frequency.value=v[0];
+      var f=c.createBiquadFilter(); f.type="lowpass";
+      f.frequency.value=600+CALOR*1700;
+      var g=c.createGain();
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.linearRampToValueAtTime(v[2],t+1.8);
+      g.gain.setValueAtTime(v[2],t+6.4);
+      g.gain.linearRampToValueAtTime(.0001,t+8.2);
+      o.connect(f); f.connect(g); g.connect(musica.g);
+      o.start(t); o.stop(t+8.4);
+    });
+  });
+}
+function harpa(t,fr){
+  var c=actx;
+  var o=c.createOscillator(); o.type="triangle"; o.frequency.value=fr;
+  var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=900+CALOR*2300;
+  var g=c.createGain(); envAud(g,t,.008,.09+CALOR*.05,.9);
+  o.connect(f); f.connect(g);
+  g.connect(musica.g); g.connect(musica.eco);
+  o.start(t); o.stop(t+.95);
+}
+function agendarMusica(){
+  var c=actx;
+  if(!c||!somLigado||c.state!=="running") return;
+  var agora=c.currentTime;
+  if(musica.prox<agora) musica.prox=agora+.05;   // retoma sem atropelo após pausas
+  while(musica.prox<agora+1.2){
+    var ac=Math.floor(musica.passo/16)%4;
+    if(musica.passo%16===0) padAcorde(musica.prox,ac);
+    var dens=.22+CALOR*.3;
+    if(Math.random()<dens){
+      var esc=PENTAS[ac];
+      var fr=esc[Math.floor(Math.random()*esc.length)];
+      if(Math.random()<CALOR*.6) fr*=2;   // o ouro traz as oitavas altas
+      harpa(musica.prox,fr);
+    }
+    musica.prox+=.5;
+    musica.passo++;
+  }
+}
+
+/* ==========================================================
    O MUNDO ESQUENTA
    ========================================================== */
 var CALOR=0;
@@ -959,32 +1039,29 @@ if(window.gsap && window.ScrollTrigger){
 (function(){
   var sec=$("d1"),texto=$("vela-texto");
   var flick=0,raio=140,raioAlvo=140,aceso=false;
-  function move(cx,cy){
+  // a luz desliza com inércia atrás do dedo — passar a vela é fluido
+  var alvoX=-20,alvoY=50,luzX=-20,luzY=50;
+  function mira(cx,cy){
     var r=texto.getBoundingClientRect();
-    texto.style.setProperty("--vx",((cx-r.left)/r.width*100).toFixed(1)+"%");
-    texto.style.setProperty("--vy",((cy-r.top)/r.height*100).toFixed(1)+"%");
+    alvoX=(cx-r.left)/r.width*100;
+    alvoY=(cy-r.top)/r.height*100;
   }
-  // a luz em movimento sopra como vento na escuridão
-  var ultVento=0,vx0=0,vy0=0;
-  sec.addEventListener("pointermove",function(e){
-    move(e.clientX,e.clientY);
-    var agora=performance.now();
-    if(agora-ultVento>380 && Math.hypot(e.clientX-vx0,e.clientY-vy0)>26){
-      ultVento=agora; vx0=e.clientX; vy0=e.clientY;
-      tocar("vento");
-    }
-  },{passive:true});
-  sec.addEventListener("pointerdown",function(e){ move(e.clientX,e.clientY); },{passive:true});
-  // um toque limpo acende as palavras de vez — com som de fogo
+  sec.addEventListener("pointermove",function(e){ mira(e.clientX,e.clientY); },{passive:true});
+  sec.addEventListener("pointerdown",function(e){ mira(e.clientX,e.clientY); },{passive:true});
+  // a revelação definitiva (e seu som de fogo) só acontece no toque
   soToque(sec,function(e){
     armaSom(); tocar("fogo");
     if(!aceso){
       aceso=true;
-      move(e.clientX,e.clientY);
+      mira(e.clientX,e.clientY);
       raioAlvo=2400;
     }
   });
   (function treme(){
+    luzX+=(alvoX-luzX)*.22;
+    luzY+=(alvoY-luzY)*.22;
+    texto.style.setProperty("--vx",luzX.toFixed(2)+"%");
+    texto.style.setProperty("--vy",luzY.toFixed(2)+"%");
     raio+=(raioAlvo-raio)*.05;
     flick+=.15;
     var tremor=aceso?0:(Math.sin(flick)*7+Math.sin(flick*2.7)*5);
