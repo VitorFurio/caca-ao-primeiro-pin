@@ -131,11 +131,28 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 }
 .seta{
   font-family:var(--util);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#7A6449;
-  display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:14px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:14px;
 }
-.seta::after{content:"";width:1px;height:36px;background:linear-gradient(var(--gold),transparent);
-  animation:desce 1.8s cubic-bezier(.22,.61,.36,1) infinite}
-@keyframes desce{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* o fio de luz: 4x maior, com um ponto de luz que desce por ele */
+.seta .fio{
+  position:relative;width:1px;height:150px;
+  background:linear-gradient(180deg,
+    rgba(200,160,53,0) 0%,rgba(200,160,53,.55) 10%,
+    rgba(200,160,53,.30) 70%,rgba(200,160,53,0) 100%);
+}
+.seta .fio::after{
+  content:"";position:absolute;left:50%;top:0;
+  width:9px;height:9px;margin-left:-4.5px;border-radius:50%;
+  background:radial-gradient(circle,#FFF6DA 0%,var(--gold-lit) 45%,rgba(200,160,53,0) 75%);
+  box-shadow:0 0 14px 5px rgba(239,206,121,.5);
+  animation:pontoDesce 2.6s cubic-bezier(.35,.05,.55,1) infinite;
+}
+@keyframes pontoDesce{
+  0%{transform:translateY(-8px) scale(.5);opacity:0}
+  10%{opacity:1;transform:translateY(8px) scale(1)}
+  78%{opacity:1}
+  100%{transform:translateY(148px) scale(.55);opacity:0}
+}
 
 /* ============================================================
    D1 — O PERÍODO
@@ -195,9 +212,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
    D3 — O TREINO
    ============================================================ */
 #d3{cursor:crosshair}
-.brilho-metal{
-  position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:radial-gradient(circle 200px at var(--gx,-30%) var(--gy,50%),rgba(255,246,218,.13),rgba(239,206,121,.05) 45%,transparent 70%);
+/* o cintilar de metal acompanha o dedo pelo app inteiro */
+#brilho-global{
+  position:fixed;inset:0;z-index:25;pointer-events:none;
+  background:radial-gradient(circle 200px at var(--gx,-30%) var(--gy,50%),rgba(255,246,218,.12),rgba(239,206,121,.045) 45%,transparent 70%);
   mix-blend-mode:screen;
 }
 .forja-alvo{ /* a bigorna: só aqui os golpes contam */
@@ -328,6 +346,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <div id="mundo"><div id="fogueira"></div></div>
 <canvas id="brasas"></canvas>
 <div id="trilha"><i id="trilha-fill"></i></div>
+<div id="brilho-global" aria-hidden="true"></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="lacre" viewBox="-60 -60 120 120">
@@ -357,7 +376,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
     <div class="kicker">Rotaract Club de Jaraguá do Sul</div>
     <h1>Você foi<br>desafiado.</h1>
     <p class="chamado-sub">Sua jornada no Rotaract começa aqui.</p>
-    <div class="seta">comece a andar</div>
+    <div class="seta">comece a andar<span class="fio"></span></div>
   </div>
 </header>
 
@@ -370,14 +389,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <!-- ================= O PROPÓSITO ================= -->
 <section class="desafio" id="proposito">
   <div class="wrap">
-    <p class="historia">A <b>Caça ao Primeiro Pin</b> é a trilha de quem foi convidado a conhecer
-       o Rotaract: <b>quatro desafios</b>, vividos ao longo de cerca de <b>90 dias</b>, que
-       apresentam o clube por dentro — as reuniões, os treinamentos e os projetos.
-       Ao completá-los, o clube vota o seu ingresso e você conquista o <b>primeiro pin</b>:
-       o símbolo de que passou a fazer parte.</p>
+    <p class="historia">A <b>Caça ao Primeiro Pin</b> é a trilha de quem foi convidado a participar
+       do Rotaract: <b>quatro desafios</b> que apresentam o clube por dentro — as reuniões,
+       os treinamentos e os projetos. Ao completá-los, o clube vota o seu ingresso e você
+       conquista o <b>primeiro pin</b>: o símbolo de que passou a fazer parte da <b>nossa família</b>.</p>
     <p class="historia" style="margin-top:26px">A seguir, os seus <b>quatro objetivos</b> —
-       cada um escondido de um jeito. Descobrir como revelá-los faz parte da caçada.
-       A estrada começa no escuro e termina no ouro.</p>
+       cada um escondido de um jeito. Descobrir como revelá-los faz parte do desafio.
+       <b>Boa caçada!</b></p>
   </div>
 </section>
 
@@ -450,7 +468,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 
 <!-- ================= D3 · O TREINO ================= -->
 <section class="desafio" id="d3">
-  <div class="brilho-metal" id="brilho-metal"></div>
   <div class="wrap" id="forja-stage" style="text-align:center">
     <div class="forja-alvo" id="forja-alvo">
       <div class="forja-msg" id="forja-msg" aria-label="Desafio 03 - O Treinamento: participe de no mínimo 1 treinamento.">
@@ -624,6 +641,14 @@ function ligarSom(liga){
 function armaSom(){ if(!somArmado){ somArmado=true; ligarSom(true); } }
 /* som sempre ativo: o primeiro toque em qualquer lugar já o desperta */
 document.addEventListener("pointerdown",function(){ armaSom(); },{once:true,passive:true});
+/* o cintilar de metal segue o dedo pelo app inteiro */
+(function(){
+  var bg=$("brilho-global");
+  document.addEventListener("pointermove",function(e){
+    bg.style.setProperty("--gx",(e.clientX/innerWidth*100)+"%");
+    bg.style.setProperty("--gy",(e.clientY/innerHeight*100)+"%");
+  },{passive:true});
+})();
 function ruido(dur){
   var sr=actx.sampleRate,b=actx.createBuffer(1,Math.ceil(sr*dur),sr),d=b.getChannelData(0),i;
   for(i=0;i<d.length;i++)d[i]=Math.random()*2-1;
@@ -701,6 +726,25 @@ var SONS={
       o.connect(g); g.connect(masterGain);
       o.start(t+i*.13); o.stop(t+i*.13+.6);
     });
+  },
+  vitoria:function(c,t){ // a chegada ao pin: arpejo, acorde sustentado e cintilar
+    [523.25,659.25,783.99,1046.5].forEach(function(fr,i){
+      var o=c.createOscillator(); o.type="sine"; o.frequency.value=fr;
+      var g=c.createGain(); envAud(g,t+i*.12,.01,.32,.6);
+      o.connect(g); g.connect(masterGain);
+      o.start(t+i*.12); o.stop(t+i*.12+.66);
+    });
+    [1046.5,1318.5,1568,2093].forEach(function(fr,i){
+      var o=c.createOscillator(); o.type=i<2?"triangle":"sine"; o.frequency.value=fr;
+      var g=c.createGain(); envAud(g,t+.52,.03,.2,1.7);
+      o.connect(g); g.connect(masterGain);
+      o.start(t+.52); o.stop(t+2.3);
+    });
+    var s=c.createBufferSource(); s.buffer=ruido(.5);
+    var hp=c.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=5500;
+    var sg=c.createGain(); envAud(sg,t+.52,.03,.13,.5);
+    s.connect(hp); hp.connect(sg); sg.connect(masterGain);
+    s.start(t+.52); s.stop(t+1.1);
   }
 };
 function tocar(nome){
@@ -919,7 +963,7 @@ if(window.gsap && window.ScrollTrigger){
    D3 — O TREINO (forja concentrada na bigorna)
    ========================================================== */
 (function(){
-  var sec=$("d3"),brilho=$("brilho-metal"),stage=$("forja-stage"),alvo=$("forja-alvo");
+  var sec=$("d3"),stage=$("forja-stage"),alvo=$("forja-alvo");
   // golpe 1 forja o nome; golpes 2 e 3 forjam a descrição
   function pedacoEm(parent,txt){
     var s=document.createElement("span");
@@ -936,12 +980,6 @@ if(window.gsap && window.ScrollTrigger){
     pedacoEm($("forja-desc"),"treinamento.")
   ];
   var golpe=0;
-
-  sec.addEventListener("pointermove",function(e){
-    var r=sec.getBoundingClientRect();
-    brilho.style.setProperty("--gx",((e.clientX-r.left)/r.width*100)+"%");
-    brilho.style.setProperty("--gy",((e.clientY-r.top)/r.height*100)+"%");
-  },{passive:true});
 
   function faiscas(x,y,qtd){
     if(reduz) return;
@@ -1125,6 +1163,20 @@ if(window.gsap && window.ScrollTrigger){
   },{rootMargin:"1600px 0px"});
   io.observe($("premio"));
 
+  /* o som de vitória soa quando a pessoa CHEGA ao pin */
+  var vitoriaTocada=false;
+  var ioVitoria=new IntersectionObserver(function(es){
+    es.forEach(function(en){
+      if(en.isIntersecting && !vitoriaTocada){
+        vitoriaTocada=true;
+        ioVitoria.disconnect();
+        tocar("vitoria");
+        vibrar([15,50,20,50,90]);
+      }
+    });
+  },{threshold:.35});
+  ioVitoria.observe($("pin-palco"));
+
   function montarPin(){
     if(!window.THREE) return;
     var palco=$("pin-palco"),cv=$("pin-cena");
@@ -1254,7 +1306,6 @@ if(window.gsap && window.ScrollTrigger){
       mV.rotation.y=Math.PI;
       mV.position.z=-(PROF/2+BISEL+.006);
       pin.add(mV);
-      tocar("fanfarra");
     };
     logo.src="images/Rotaract - Logo Cranberry Sem Fundo (centralizado).png";
 
@@ -1271,9 +1322,6 @@ if(window.gsap && window.ScrollTrigger){
     cv.addEventListener("pointerdown",function(e){
       cv.setPointerCapture(e.pointerId);
       dragP={x:e.clientX,y:e.clientY};
-      armaSom();
-      tocar("brilho");
-      vibrar(8);
     });
     cv.addEventListener("pointermove",function(e){
       if(!dragP) return;
