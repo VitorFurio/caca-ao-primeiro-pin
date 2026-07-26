@@ -162,11 +162,20 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 .carta .d-desc{color:var(--ink)}
 .envelope{
   position:absolute;inset:0;z-index:6;border-radius:3px;
-  background:linear-gradient(150deg,#E4CFA0,#CDB47F 55%,#AE9260);
-  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;
+  background:
+    radial-gradient(circle at 14% 88%,rgba(120,86,38,.28),transparent 30%),
+    radial-gradient(circle at 88% 16%,rgba(120,86,38,.22),transparent 26%),
+    radial-gradient(ellipse at 40% 20%,rgba(255,255,255,.22),transparent 55%),
+    linear-gradient(150deg,#E6D2A6,#D2BA88 55%,#B49767);
+  box-shadow:inset 0 0 0 1px rgba(90,64,28,.3),inset 0 0 44px rgba(110,80,34,.28);
   color:var(--ink);touch-action:pan-y;
 }
-.envelope .lacre-mini{width:58px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.4))}
+.env-dobras{position:absolute;inset:0;width:100%;height:100%;display:block}
+.lacre-carta{
+  position:absolute;left:50%;top:57.5%;width:78px;height:78px;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 7px 12px rgba(60,10,20,.5));
+}
 .tinta-mark{position:absolute;pointer-events:none;transform:translate(-50%,-50%);z-index:5;
   transition:opacity 1.4s ease .9s}
 .tinta-mark.some{opacity:0}
@@ -270,7 +279,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   25%{opacity:1}
   100%{opacity:0;transform:scale(1.1) rotate(90deg) translateY(-14px)}
 }
-.fogo-particula{position:absolute;border-radius:50%;pointer-events:none;z-index:9}
 .poeira{
   position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:6;
   background:#C9AE7B;opacity:.9;
@@ -314,6 +322,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
     <g fill="none" stroke="#E9A6B2" stroke-width="2.6" stroke-linecap="round">
       <circle r="20"/><path d="M0 -14V6"/><path d="M-6 -8 0 -14 6 -8"/>
     </g>
+  </symbol>
+  <!-- lacre de cera arredondado, como no envelope de referência -->
+  <symbol id="lacre-suave" viewBox="-60 -60 120 120">
+    <path id="lacre-suave-blob" fill="#9E1430"/>
+    <circle r="35" fill="#8E1029"/>
+    <circle r="29" fill="none" stroke="#C93450" stroke-width="1.6" opacity=".65"/>
+    <g fill="none" stroke="#E9A6B2" stroke-width="2.4" stroke-linecap="round" opacity=".85">
+      <circle r="15"/><path d="M0 -10V5"/><path d="M-5 -5 0 -10 5 -5"/>
+    </g>
+    <ellipse cx="-15" cy="-19" rx="15" ry="8" fill="rgba(255,255,255,.13)" transform="rotate(-32 -15 -19)"/>
   </symbol>
 </svg>
 
@@ -368,7 +386,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
         <div class="d-desc">Atinja <b>60% de frequência</b> no período dos 90 dias.</div>
       </div>
       <div class="envelope" id="envelope">
-        <svg class="lacre-mini" viewBox="-60 -60 120 120"><use href="#lacre"/></svg>
+        <svg class="env-dobras" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
+          <!-- dobras laterais e de baixo -->
+          <path d="M0 300 L200 172 L400 300 Z" fill="rgba(255,252,240,.12)"/>
+          <path d="M0 300 L200 172 L400 300" fill="none" stroke="rgba(90,64,28,.32)" stroke-width="1.6"/>
+          <!-- aba superior em V, como na carta de referência -->
+          <path d="M0 0 L200 172 L400 0 Z" fill="rgba(112,82,36,.20)"/>
+          <path d="M0 0 L200 172 L400 0" fill="none" stroke="rgba(90,64,28,.52)" stroke-width="2.2"/>
+          <path d="M6 4 L200 168" fill="none" stroke="rgba(255,250,235,.25)" stroke-width="1"/>
+        </svg>
+        <svg class="lacre-carta" viewBox="-60 -60 120 120"><use href="#lacre-suave" x="-60" y="-60" width="120" height="120"/></svg>
       </div>
     </div>
     <p class="historia apoio">Compromisso não se prova no impulso — se prova no <b>ritmo</b>.
@@ -490,6 +517,14 @@ function lerp(a,b,t){ return a+(b-a)*t; }
   for(i=0;i<48;i++){a=i/48*Math.PI*2;r=(i%2?44:50);
     pts.push((Math.cos(a)*r).toFixed(1)+" "+(Math.sin(a)*r).toFixed(1));}
   $("lacre-serrilha").setAttribute("d","M"+pts.join("L")+"Z");
+  // lacre suave: borda ondulada de cera derretida (sem pontas)
+  var sv=[],N=72;
+  for(i=0;i<N;i++){
+    a=i/N*Math.PI*2;
+    r=43+3.4*Math.sin(a*7+1.3)+1.8*Math.sin(a*3+.5);
+    sv.push((Math.cos(a)*r).toFixed(1)+" "+(Math.sin(a)*r).toFixed(1));
+  }
+  $("lacre-suave-blob").setAttribute("d","M"+sv.join("L")+"Z");
 })();
 
 /* ==========================================================
@@ -641,18 +676,29 @@ document.addEventListener("scroll",function(){ requestAnimationFrame(aoRolarGlob
 aoRolarGlobal();
 
 /* ==========================================================
-   BRASAS GLOBAIS
+   BRASAS GLOBAIS + FOGOS — um único canvas, zero DOM
    ========================================================== */
 (function(){
   if(reduz) return;
   var cv=$("brasas"),ctx=cv.getContext("2d");
-  var W,H,parts=[];
+  var W,H,parts=[],fogos=[];
+  var CORES_FOGO=["239,206,121","255,246,218","212,20,90","200,160,53","255,217,138"];
   function medir(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
   medir(); addEventListener("resize",medir);
   function nova(){
     return {x:Math.random()*W,y:H+10,vx:(Math.random()-.5)*.5,
             vy:-(0.4+Math.random()*1.4),r:1+Math.random()*2.4,vida:1};
   }
+  // dispara um estouro de fogos em coordenadas da TELA (client)
+  window.__fogo=function(cx,cy){
+    for(var i=0;i<24;i++){
+      var a=Math.random()*Math.PI*2,v=2.4+Math.random()*4.6;
+      fogos.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2.8,
+                  r:1.6+Math.random()*2.2,vida:1,
+                  cor:CORES_FOGO[Math.floor(Math.random()*CORES_FOGO.length)]});
+    }
+    if(fogos.length>240) fogos.splice(0,fogos.length-240);
+  };
   (function tick(){
     ctx.clearRect(0,0,W,H);
     var alvo=Math.round(4+CALOR*46);
@@ -667,6 +713,17 @@ aoRolarGlobal();
       ctx.fillStyle="rgb(239,"+g+","+b+")";
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
     });
+    // fogos: halo + núcleo por partícula — barato, sem box-shadow nem DOM
+    for(var i=fogos.length-1;i>=0;i--){
+      var f=fogos[i];
+      f.vy+=.13;f.x+=f.vx;f.y+=f.vy;f.vida-=.018;
+      if(f.vida<=0){ fogos.splice(i,1); continue; }
+      ctx.globalAlpha=f.vida*.22;
+      ctx.fillStyle="rgb("+f.cor+")";
+      ctx.beginPath();ctx.arc(f.x,f.y,f.r*2.6,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=f.vida;
+      ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();
+    }
     ctx.globalAlpha=1;
     requestAnimationFrame(tick);
   })();
@@ -801,8 +858,10 @@ if(window.gsap && window.ScrollTrigger){
   }
   var els=[
     pedacoEm($("forja-nome"),"Desafio 03 - O Treinamento"),
-    pedacoEm($("forja-desc"),"Participe de no mínimo "),
-    pedacoEm($("forja-desc"),"1 treinamento.")
+    pedacoEm($("forja-desc"),"Participe "),
+    pedacoEm($("forja-desc"),"de no mínimo "),
+    pedacoEm($("forja-desc"),"1 "),
+    pedacoEm($("forja-desc"),"treinamento.")
   ];
   var golpe=0;
 
@@ -900,35 +959,9 @@ if(window.gsap && window.ScrollTrigger){
     }
   }
 
-  function fogos(x,y){
-    if(reduz) return;
-    var CORES=["#EFCE79","#FFF6DA","#D4145A","#C8A035","#FFD98A"];
-    var parts=[];
-    for(var i=0;i<26;i++){
-      var p=document.createElement("i");
-      p.className="fogo-particula";
-      var s=3+Math.random()*4;
-      var cor=CORES[Math.floor(Math.random()*CORES.length)];
-      p.style.width=s+"px";p.style.height=s+"px";
-      p.style.background=cor;
-      p.style.boxShadow="0 0 10px 2px "+cor;
-      p.style.left=x+"px";p.style.top=y+"px";
-      var a=Math.random()*Math.PI*2,v=2.6+Math.random()*5;
-      parts.push({el:p,x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-3,vida:1});
-      sec.appendChild(p);
-    }
-    (function tick(){
-      var vivas=false;
-      parts.forEach(function(p){
-        if(p.vida<=0) return;
-        vivas=true;
-        p.vy+=.14;p.x+=p.vx;p.y+=p.vy;p.vida-=.017;
-        p.el.style.left=p.x+"px";p.el.style.top=p.y+"px";
-        p.el.style.opacity=p.vida;
-        if(p.vida<=0)p.el.remove();
-      });
-      if(vivas) requestAnimationFrame(tick);
-    })();
+  // fogos desenhados no canvas global (coordenadas da tela) — fluido no celular
+  function fogos(cx,cy){
+    if(window.__fogo) window.__fogo(cx,cy);
   }
 
   var ultEstrela=0;
@@ -968,12 +1001,12 @@ if(window.gsap && window.ScrollTrigger){
         var mr=$("monumento").getBoundingClientRect();
         [[.3,.2],[.7,.15],[.5,.05]].forEach(function(f,i){
           setTimeout(function(){
-            fogos(mr.left-r.left+mr.width*f[0], mr.top-r.top-10+mr.height*f[1]);
+            fogos(mr.left+mr.width*f[0], mr.top-10+mr.height*f[1]);
           }, i*260);
         });
       }
     } else {
-      fogos(e.clientX-r.left,e.clientY-r.top);
+      fogos(e.clientX,e.clientY);
       tocar("pedra");
       vibrar(8);
     }
