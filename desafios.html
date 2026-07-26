@@ -603,7 +603,15 @@ function audio(){
     actx=new AC();
     masterGain=actx.createGain();
     masterGain.gain.value=0;
-    masterGain.connect(actx.destination);
+    /* compressor na saída: volume no máximo sem distorção */
+    var comp=actx.createDynamicsCompressor();
+    comp.threshold.value=-14;
+    comp.knee.value=22;
+    comp.ratio.value=8;
+    comp.attack.value=.003;
+    comp.release.value=.22;
+    masterGain.connect(comp);
+    comp.connect(actx.destination);
   }
   if(actx.state==="suspended") actx.resume();
   return actx;
@@ -611,7 +619,7 @@ function audio(){
 function ligarSom(liga){
   somLigado=liga;
   var c=audio();
-  if(c) masterGain.gain.setTargetAtTime(liga?0.6:0,c.currentTime,.05);
+  if(c) masterGain.gain.setTargetAtTime(liga?1.0:0,c.currentTime,.05);
 }
 function armaSom(){ if(!somArmado){ somArmado=true; ligarSom(true); } }
 /* som sempre ativo: o primeiro toque em qualquer lugar já o desperta */
@@ -630,21 +638,34 @@ var SONS={
   chama:function(c,t){ // sopro suave da vela
     var s=c.createBufferSource(); s.buffer=ruido(.3);
     var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=650;
-    var g=c.createGain(); envAud(g,t,.05,.12,.28);
+    var g=c.createGain(); envAud(g,t,.05,.25,.28);
     s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.3);
   },
   rasgo:function(c,t){ // papel rasgando
     var s=c.createBufferSource(); s.buffer=ruido(.16);
     var f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=950; f.Q.value=.6;
-    var g=c.createGain(); envAud(g,t,.01,.4,.15);
+    var g=c.createGain(); envAud(g,t,.01,.65,.15);
     s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+.17);
   },
   tinta:function(c,t){ // gota de tinta
     var o=c.createOscillator(); o.type="sine";
     o.frequency.setValueAtTime(340,t);
     o.frequency.exponentialRampToValueAtTime(140,t+.11);
-    var g=c.createGain(); envAud(g,t,.005,.3,.13);
+    var g=c.createGain(); envAud(g,t,.005,.5,.13);
     o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+.15);
+  },
+  brilho:function(c,t){ // metal brilhante — o tilintar do pin
+    [2093,3136,4186].forEach(function(fr,i){
+      var o=c.createOscillator(); o.type="sine";
+      o.frequency.value=fr*(1+(Math.random()-.5)*.004);
+      var g=c.createGain(); envAud(g,t+i*.014,.004,i?0.16:0.3,.95-i*.18);
+      o.connect(g); g.connect(masterGain);
+      o.start(t+i*.014); o.stop(t+i*.014+1);
+    });
+    var s=c.createBufferSource(); s.buffer=ruido(.25);
+    var hp=c.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=6000;
+    var sg=c.createGain(); envAud(sg,t,.01,.14,.22);
+    s.connect(hp); hp.connect(sg); sg.connect(masterGain); s.start(t); s.stop(t+.26);
   },
   bigorna:function(c,t){ // golpe metálico
     var o=c.createOscillator(); o.type="sine";
@@ -676,7 +697,7 @@ var SONS={
   fanfarra:function(c,t){
     [523.25,659.25,783.99,1046.5].forEach(function(fr,i){
       var o=c.createOscillator(); o.type="sine"; o.frequency.value=fr;
-      var g=c.createGain(); envAud(g,t+i*.13,.01,.18,.55);
+      var g=c.createGain(); envAud(g,t+i*.13,.01,.32,.55);
       o.connect(g); g.connect(masterGain);
       o.start(t+i*.13); o.stop(t+i*.13+.6);
     });
@@ -1250,6 +1271,9 @@ if(window.gsap && window.ScrollTrigger){
     cv.addEventListener("pointerdown",function(e){
       cv.setPointerCapture(e.pointerId);
       dragP={x:e.clientX,y:e.clientY};
+      armaSom();
+      tocar("brilho");
+      vibrar(8);
     });
     cv.addEventListener("pointermove",function(e){
       if(!dragP) return;
