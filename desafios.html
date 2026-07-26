@@ -74,32 +74,23 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   touch-action:pan-y;
 }
 .desafio .wrap{position:relative;z-index:2}
-.rotulo{
-  font-family:var(--util);font-size:10px;letter-spacing:.34em;text-transform:uppercase;
-  color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:12px;
-}
-.rotulo::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(200,160,53,.35),transparent)}
-.desafio h2{
+/* apresentação padronizada de TODO desafio: nome menor + descrição dominante,
+   mesma fonte e mesmos tamanhos — só o efeito e a cor mudam entre eles */
+.d-nome{
   font-family:var(--display);font-weight:400;
-  font-size:clamp(28px,7.4vw,46px);line-height:1.18;letter-spacing:.02em;
-  margin-bottom:14px;text-wrap:balance;
+  font-size:clamp(13px,3.6vw,17px);letter-spacing:.3em;text-transform:uppercase;
+  margin-bottom:14px;opacity:.85;
+}
+.d-desc{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(27px,7.2vw,44px);line-height:1.35;letter-spacing:.03em;
+  text-wrap:balance;
 }
 .historia{color:var(--parch-3);line-height:1.85;font-size:clamp(14px,3.7vw,16px);max-width:54ch}
 .historia b{color:var(--parch-1)}
 /* a explicação mora estrada abaixo — mais de uma tela de caminhada após o desafio */
 .apoio{margin-top:clamp(520px,115svh,950px)}
 
-/* O OBJETIVO — cada desafio o revela com seu próprio efeito */
-.obj-tag{
-  font-family:var(--util);font-size:9px;letter-spacing:.32em;text-transform:uppercase;
-  color:var(--gold-lit);margin:22px 0 10px;
-  display:flex;align-items:center;gap:10px;
-}
-.obj-tag::before{content:"";width:18px;height:1px;background:var(--gold)}
-.frase-obj{
-  font-family:var(--display);font-weight:400;
-  font-size:clamp(18px,5vw,24px);line-height:1.42;letter-spacing:.02em;
-}
 
 /* cenário que passa por trás */
 .cenario{position:relative;height:0;z-index:0;pointer-events:none}
@@ -143,8 +134,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
    ============================================================ */
 .vela-texto{
   position:relative;
-  font-family:var(--display);font-weight:400;
-  font-size:clamp(25px,6.8vw,42px);line-height:1.45;letter-spacing:.04em;
   color:var(--gold-lit);
   text-shadow:0 0 14px rgba(239,206,121,.75),0 0 44px rgba(200,160,53,.4);
   -webkit-mask-image:radial-gradient(circle var(--raio,140px) at var(--vx,-20%) var(--vy,50%),#000 0%,#000 52%,transparent 78%);
@@ -153,8 +142,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 .vela-texto b{color:#FFF6DA;font-weight:400}
 .vela-fantasma{
   position:absolute;inset:0;pointer-events:none;
-  font-family:var(--display);font-weight:400;
-  font-size:clamp(25px,6.8vw,42px);line-height:1.45;letter-spacing:.04em;
   color:rgba(239,221,184,.05);
 }
 
@@ -171,9 +158,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   padding:clamp(18px,5vw,30px);
   display:flex;flex-direction:column;justify-content:center;gap:10px;
 }
-.carta .selo-topo{font-family:var(--util);font-size:8.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft)}
-.carta .frase{font-family:var(--hand);font-size:clamp(14.5px,4vw,19px);line-height:1.55}
-.carta .assin{font-family:var(--util);font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+.carta .d-nome{color:var(--ink-soft)}
+.carta .d-desc{color:var(--ink)}
 .envelope{
   position:absolute;inset:0;z-index:6;border-radius:3px;
   background:linear-gradient(150deg,#E4CFA0,#CDB47F 55%,#AE9260);
@@ -203,10 +189,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   transition:border-color .4s;
 }
 .forja-alvo.pronta{border-color:transparent}
-.forja-msg{
-  font-family:var(--display);font-weight:400;
-  font-size:clamp(19px,5.2vw,30px);line-height:1.5;letter-spacing:.03em;
-}
 .pedaco{
   display:inline;color:#3A2C1B;opacity:.5;
   filter:blur(3px);
@@ -244,7 +226,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
    D4 — A EXECUÇÃO
    ============================================================ */
 #d4{text-align:center}
-#d4 .rotulo{justify-content:center}
 #d4 .objetivo{text-align:left}
 #d4 .historia{margin-left:auto;margin-right:auto}
 .noite{position:absolute;inset:0;z-index:0;overflow:visible;pointer-events:none}
@@ -273,9 +254,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 }
 #monumento .pedra{fill:#C9AE7B;stroke:#1E150A;stroke-width:2;stroke-linejoin:round}
 .gravacao{
-  font-family:var(--display);font-size:clamp(18px,5vw,25px);line-height:1.45;
   color:var(--gold-lit);text-shadow:0 0 14px rgba(239,206,121,.5);
-  max-width:30ch;margin:16px auto 0;
+  max-width:32ch;margin:18px auto 0;
   clip-path:inset(0 100% 0 0);
   transition:clip-path 2s cubic-bezier(.22,.61,.36,1);
 }
@@ -356,11 +336,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <!-- ================= D1 · O PERÍODO ================= -->
 <section class="desafio" id="d1">
   <div class="wrap">
-    <div class="rotulo">Desafio 01 · O Período</div>
-    <h2>Toda caçada<br>começa no escuro</h2>
-    <div style="position:relative;margin-top:26px">
-      <div class="vela-fantasma" aria-hidden="true">Participe das reuniões por, no mínimo, 90 dias.</div>
-      <div class="vela-texto" id="vela-texto">Participe das reuniões por, no mínimo, <b>90 dias</b>.</div>
+    <div style="position:relative">
+      <div class="vela-fantasma" aria-hidden="true">
+        <div class="d-nome">Desafio 01 - O Período</div>
+        <div class="d-desc">Participe das reuniões do Rotaract por um período mínimo de 90 dias.</div>
+      </div>
+      <div class="vela-texto" id="vela-texto">
+        <div class="d-nome">Desafio 01 - O Período</div>
+        <div class="d-desc">Participe das reuniões do Rotaract por um período mínimo de <b>90 dias</b>.</div>
+      </div>
     </div>
     <p class="historia apoio">O Rotaract exige <b>compromisso e frequência</b>. Durante esses 90 dias,
        viva o clube por dentro: as reuniões são onde os projetos nascem, as decisões são tomadas e
@@ -378,13 +362,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <!-- ================= D2 · A CONSTÂNCIA ================= -->
 <section class="desafio" id="d2">
   <div class="wrap">
-    <div class="rotulo">Desafio 02 · A Constância</div>
-    <h2>O clube te escreveu<br>uma carta</h2>
     <div class="carta-area" id="carta-area">
       <div class="carta" id="carta">
-        <div class="selo-topo">Rotaract Club de Jaraguá do Sul · objetivo</div>
-        <div class="frase frase-obj">Atinja <b>60% de frequência</b> no período.</div>
-        <div class="frase" style="font-size:clamp(13px,3.6vw,16px)">Cada presença é uma marca sua na história do clube.</div>
+        <div class="d-nome">Desafio 02 - A Constância</div>
+        <div class="d-desc">Atinja <b>60% de frequência</b> no período dos 90 dias.</div>
       </div>
       <div class="envelope" id="envelope">
         <svg class="lacre-mini" viewBox="-60 -60 120 120"><use href="#lacre"/></svg>
@@ -408,10 +389,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <section class="desafio" id="d3">
   <div class="brilho-metal" id="brilho-metal"></div>
   <div class="wrap" id="forja-stage" style="text-align:center">
-    <div class="rotulo" style="justify-content:center">Desafio 03 · O Treino</div>
-    <h2>O objetivo está<br>no ferro bruto</h2>
     <div class="forja-alvo" id="forja-alvo">
-      <div class="forja-msg" id="forja-msg" aria-label="Participe de, no mínimo, 1 treinamento."></div>
+      <div class="forja-msg" id="forja-msg" aria-label="Desafio 03 - O Treinamento: participe de no mínimo 1 treinamento.">
+        <div class="d-nome" id="forja-nome"></div>
+        <div class="d-desc" id="forja-desc"></div>
+      </div>
       <svg class="forja-simbolo" id="forja-simbolo" viewBox="-50 -50 100 100" aria-hidden="true">
         <path d="M-16 6c0-16 7-26 16-26s16 10 16 26"/>
         <path d="M-16 6v10h32V6"/>
@@ -442,8 +424,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
     <div class="n-sol" id="n-sol"></div>
   </div>
   <div class="wrap">
-    <div class="rotulo">Desafio 04 · A Execução</div>
-    <h2>Nada ensina como<br>pôr a mão na massa</h2>
     <div class="obra-alvo" id="obra-alvo">
       <svg id="monumento" viewBox="0 0 320 214" aria-hidden="true">
         <g class="peca" id="pc-base">
@@ -471,7 +451,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
         </g>
       </svg>
     </div>
-    <div class="gravacao" id="gravacao">Participe de, no mínimo, <b>3 projetos ou ações</b>.</div>
+    <div class="gravacao" id="gravacao">
+      <div class="d-nome">Desafio 04 - A Execução</div>
+      <div class="d-desc">Participe de <b>3 projetos ou ações</b> do clube.</div>
+    </div>
     <p class="historia apoio" style="margin-left:auto;margin-right:auto">Nada como <b>pôr a mão na massa</b>
        para aprender. O Rotaract impacta o mundo por meio dos seus <b>projetos</b> — e é participando que
        se entende como eles funcionam: o planejamento, a execução e o resultado que fica para a comunidade.
@@ -808,19 +791,19 @@ if(window.gsap && window.ScrollTrigger){
    ========================================================== */
 (function(){
   var sec=$("d3"),brilho=$("brilho-metal"),stage=$("forja-stage"),alvo=$("forja-alvo");
-  var PEDACOS=[
-    "Participe ",
-    "de, no mínimo, ",
-    "1 treinamento."
-  ];
-  var msg=$("forja-msg");
-  var els=PEDACOS.map(function(t){
+  // golpe 1 forja o nome; golpes 2 e 3 forjam a descrição
+  function pedacoEm(parent,txt){
     var s=document.createElement("span");
     s.className="pedaco";
-    s.textContent=t;
-    msg.appendChild(s);
+    s.textContent=txt;
+    parent.appendChild(s);
     return s;
-  });
+  }
+  var els=[
+    pedacoEm($("forja-nome"),"Desafio 03 - O Treinamento"),
+    pedacoEm($("forja-desc"),"Participe de no mínimo "),
+    pedacoEm($("forja-desc"),"1 treinamento.")
+  ];
   var golpe=0;
 
   sec.addEventListener("pointermove",function(e){
