@@ -157,8 +157,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 /* aviso de som — a jornada tem trilha sonora */
 .aviso-som{
   display:flex;flex-direction:column;align-items:center;gap:16px;
-  /* mesmo respiro dos versos da estrada, em cima e embaixo */
-  margin:clamp(240px,50svh,520px) auto;padding:0 28px;text-align:center;
+  /* respiro dos versos acima; UMA TELA inteira até o primeiro verso
+     (as margens colapsam através do cenário — vale a maior) */
+  margin:clamp(240px,50svh,520px) auto clamp(480px,100svh,1000px);
+  padding:0 28px;text-align:center;
   max-width:34ch;
 }
 .aviso-som svg{
