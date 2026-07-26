@@ -25,7 +25,6 @@
   --hand:'Segoe Script','Bradley Hand','Snell Roundhand',cursive;
   --body:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
   --util:'Futura','Avenir Next','Century Gothic',sans-serif;
-  /* fundo vivo — controlado pela rolagem */
   --ceu:#0B0A09;
   --chao:#0B0A09;
   --brasa-glow:0;
@@ -39,31 +38,30 @@ body{
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
 /* ============================================================
-   FUNDO VIVO (fixo, esquenta com a descida)
+   FUNDO VIVO
    ============================================================ */
 #mundo{
   position:fixed;inset:0;z-index:-2;
   background:radial-gradient(130% 90% at 50% 18%,var(--ceu) 0%,var(--chao) 75%);
 }
-#mundo::after{ /* fogueira crescendo no horizonte */
+#mundo::after{
   content:"";position:absolute;left:0;right:0;bottom:0;height:55%;
   background:radial-gradient(120% 100% at 50% 108%,rgba(239,166,60,.55),rgba(168,23,51,.12) 55%,transparent 75%);
   opacity:var(--brasa-glow);
 }
 #brasas{position:fixed;inset:0;z-index:-1;pointer-events:none}
-
-/* trilha lateral — o caminho percorrido */
 #trilha{position:fixed;left:max(10px,env(safe-area-inset-left));top:0;bottom:0;width:3px;z-index:40;background:rgba(239,221,184,.06)}
 #trilha i{display:block;width:100%;height:0;background:linear-gradient(var(--wax),var(--gold));box-shadow:0 0 10px rgba(200,160,53,.5)}
 
 /* ============================================================
-   ESTRUTURA DA DESCIDA
+   ESTRUTURA
    ============================================================ */
 .wrap{max-width:640px;margin:0 auto;padding:0 clamp(22px,6vw,40px)}
 .ato{position:relative;height:240svh}
 .palco{
   position:sticky;top:0;height:100svh;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
+  touch-action:pan-y;               /* efeitos convivem com a rolagem */
 }
 .palco-conteudo{width:min(92vw,600px);position:relative;z-index:3}
 .rotulo{
@@ -83,7 +81,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   color:#7A6449;margin-top:18px;line-height:2;
 }
 
-/* faixas de transição — o terreno passa, a estrada segue */
 .entreato{position:relative;height:70svh;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .morro{position:absolute;left:-12%;right:-12%;height:62%;bottom:-6%;pointer-events:none;will-change:transform}
 .morro.fundo{background:radial-gradient(120% 90% at 50% 118%,rgba(58,42,20,.55) 48%,transparent 50%)}
@@ -112,36 +109,27 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 @keyframes desce{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
 
 /* ============================================================
-   DESAFIO 1 — A TRAVESSIA (luz de vela no dedo)
+   D1 — A TRAVESSIA (luz de vela, sem ponto extra)
    ============================================================ */
-#palco-1{cursor:none;touch-action:none}
 .vela-texto{
   position:relative;
   font-family:var(--display);font-weight:400;
   font-size:clamp(26px,7vw,44px);line-height:1.5;letter-spacing:.04em;
   color:var(--gold-lit);
   text-shadow:0 0 14px rgba(239,206,121,.75),0 0 44px rgba(200,160,53,.4);
-  -webkit-mask-image:radial-gradient(circle var(--raio,130px) at var(--vx,-20%) var(--vy,50%),#000 0%,#000 52%,transparent 78%);
-  mask-image:radial-gradient(circle var(--raio,130px) at var(--vx,-20%) var(--vy,50%),#000 0%,#000 52%,transparent 78%);
+  -webkit-mask-image:radial-gradient(circle var(--raio,140px) at var(--vx,-20%) var(--vy,50%),#000 0%,#000 52%,transparent 78%);
+  mask-image:radial-gradient(circle var(--raio,140px) at var(--vx,-20%) var(--vy,50%),#000 0%,#000 52%,transparent 78%);
 }
 .vela-texto b{color:#FFF6DA;font-weight:400}
-.vela-fantasma{ /* sussurro das letras no escuro */
+.vela-fantasma{
   position:absolute;inset:0;pointer-events:none;
   font-family:var(--display);font-weight:400;
   font-size:clamp(26px,7vw,44px);line-height:1.5;letter-spacing:.04em;
   color:rgba(239,221,184,.05);
 }
-.chama{ /* a chama que segue o dedo */
-  position:absolute;z-index:5;width:14px;height:14px;margin:-7px 0 0 -7px;
-  pointer-events:none;left:-40px;top:50%;
-  background:radial-gradient(circle,#FFF6DA 0%,#EFCE79 40%,rgba(233,169,60,.0) 70%);
-  border-radius:50%;
-  filter:blur(.5px);
-  box-shadow:0 0 22px 8px rgba(239,206,121,.5),0 0 60px 24px rgba(200,160,53,.18);
-}
 
 /* ============================================================
-   DESAFIO 2 — A CONSTÂNCIA (carta rasgada + tinta)
+   D2 — A CONSTÂNCIA (carta + tinta que desvanece)
    ============================================================ */
 .carta-area{position:relative;width:min(88vw,420px);margin:26px auto 0;aspect-ratio:4/3;user-select:none;-webkit-user-select:none}
 .carta{
@@ -160,27 +148,55 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   position:absolute;inset:0;z-index:6;border-radius:3px;
   background:linear-gradient(150deg,#E4CFA0,#CDB47F 55%,#AE9260);
   display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;
-  color:var(--ink);touch-action:none;
+  color:var(--ink);touch-action:pan-y;
 }
 .envelope .lacre-mini{width:58px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.4))}
 .envelope .env-dica{font-family:var(--util);font-size:9px;letter-spacing:.24em;text-transform:uppercase;opacity:.6}
-.rasgo-fio{position:absolute;top:0;bottom:0;width:26px;z-index:7;pointer-events:none;opacity:0}
-.tinta-mark{position:absolute;pointer-events:none;transform:translate(-50%,-50%);z-index:5}
+.tinta-mark{position:absolute;pointer-events:none;transform:translate(-50%,-50%);z-index:5;
+  transition:opacity 1.4s ease .9s}   /* a marca respira e some */
+.tinta-mark.some{opacity:0}
 .tinta-mark svg{overflow:visible;display:block}
 .tinta-mark .gota{transform-origin:center;animation:gota .5s cubic-bezier(.34,1.56,.64,1) forwards;opacity:0}
 @keyframes gota{0%{opacity:0;transform:scale(0)}60%{opacity:1;transform:scale(1.15)}100%{opacity:.92;transform:scale(1)}}
 
 /* ============================================================
-   DESAFIO 3 — O TREINO (a forja: fogo e explosões)
+   D3 — O TREINO (metal cintilante + mensagem forjada)
    ============================================================ */
-#palco-3{touch-action:manipulation}
+#palco-3{cursor:crosshair}
+.brilho-metal{ /* reflexo que acompanha o dedo */
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(circle 200px at var(--gx,-30%) var(--gy,50%),rgba(255,246,218,.14),rgba(239,206,121,.05) 45%,transparent 70%);
+  mix-blend-mode:screen;
+}
+.forja-msg{
+  margin:22px 0 0;
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(20px,5.6vw,32px);line-height:1.5;letter-spacing:.03em;
+}
+.pedaco{
+  display:inline;color:#3A2C1B;opacity:.5;
+  filter:blur(3px);
+  transition:color .9s ease,opacity .6s ease,filter .6s ease,text-shadow .9s ease;
+}
+.pedaco.quente{
+  opacity:1;filter:blur(0);color:#FFD98A;
+  text-shadow:0 0 18px rgba(239,166,60,.95),0 0 50px rgba(200,120,30,.5);
+}
+.pedaco.frio{
+  opacity:1;filter:blur(0);color:var(--parch-1);
+  text-shadow:0 0 8px rgba(239,206,121,.25);
+}
 .forja-simbolo{
-  width:clamp(120px,32vw,170px);margin:24px auto 0;display:block;
+  width:clamp(84px,20vw,110px);margin:20px auto 0;display:block;
   color:var(--ink-soft);
-  filter:drop-shadow(0 0 0 rgba(239,166,60,0));
-  transition:none;
 }
 .forja-simbolo path{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.palco-3-golpe{animation:golpe .3s cubic-bezier(.22,.61,.36,1)}
+@keyframes golpe{
+  0%,100%{transform:none}
+  25%{transform:translate(2px,4px)}
+  60%{transform:translate(-2px,-2px)}
+}
 .faisca{position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;z-index:8;
   background:var(--gold-lit);box-shadow:0 0 10px 2px rgba(239,166,60,.8)}
 .onda{
@@ -191,7 +207,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 @keyframes onda{from{width:10px;height:10px;opacity:.95}to{width:190px;height:190px;opacity:0}}
 
 /* ============================================================
-   DESAFIO 4 — A OBRA (a noite da caçada, luzes vivas)
+   D4 — A OBRA (erguer o monumento + vitória)
    ============================================================ */
 #palco-4{padding:0}
 .noite{position:absolute;inset:0;overflow:hidden}
@@ -201,7 +217,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   background:radial-gradient(circle at 36% 32%,#FFF6DA,#EFCE79 55%,#C8A035);
   box-shadow:0 0 70px 16px rgba(239,206,121,.3);
 }
-.n-sol{ /* o amanhecer que a rolagem levanta */
+.n-sol{
   position:absolute;left:50%;bottom:-26%;width:120vw;height:60vh;transform:translateX(-50%);
   background:radial-gradient(60% 100% at 50% 100%,rgba(239,206,121,.75),rgba(233,169,60,.28) 55%,transparent 75%);
   opacity:0;
@@ -211,10 +227,41 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
                     radial-gradient(110% 58% at 18% 112%,#1D1409 50%,transparent 52%)}
 .vagalume{position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;
   background:var(--gold-lit);box-shadow:0 0 12px 3px rgba(239,206,121,.55)}
-.obra-conteudo{position:relative;z-index:5}
+.obra-conteudo{position:relative;z-index:5;text-align:center}
+.obra-conteudo .rotulo{justify-content:center}
+#monumento{
+  width:min(78vw,340px);margin:16px auto 0;display:block;overflow:visible;
+  filter:drop-shadow(0 18px 30px rgba(0,0,0,.55));
+}
+#monumento .pedra{fill:#C9AE7B;stroke:#1E150A;stroke-width:2;stroke-linejoin:round}
+.gravacao{
+  font-family:var(--hand);font-size:clamp(15px,4.2vw,19px);line-height:1.6;
+  color:var(--gold-lit);text-shadow:0 0 14px rgba(239,206,121,.5);
+  max-width:34ch;margin:14px auto 0;
+  clip-path:inset(0 100% 0 0);
+  transition:clip-path 2s cubic-bezier(.22,.61,.36,1);
+}
+.gravacao.aparece{clip-path:inset(0 0 0 0)}
+.estrelinha{
+  position:absolute;pointer-events:none;z-index:9;
+  color:var(--gold-lit);text-shadow:0 0 8px rgba(239,206,121,.9);
+  animation:estrela .9s ease-out forwards;
+}
+@keyframes estrela{
+  0%{opacity:0;transform:scale(.3) rotate(0deg)}
+  25%{opacity:1}
+  100%{opacity:0;transform:scale(1.1) rotate(90deg) translateY(-14px)}
+}
+.fogo-particula{
+  position:absolute;border-radius:50%;pointer-events:none;z-index:9;
+}
+.poeira{
+  position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:6;
+  background:#C9AE7B;opacity:.9;
+}
 
 /* ============================================================
-   FINAL — O COMPROMISSO
+   FINAL
    ============================================================ */
 #final{min-height:110svh;display:flex;align-items:center;text-align:center;position:relative;overflow:hidden}
 #final .wrap{display:flex;flex-direction:column;align-items:center;position:relative;z-index:2}
@@ -264,17 +311,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   </div>
 </header>
 
-<!-- ================= DESAFIO 1 · A TRAVESSIA ================= -->
+<!-- ================= D1 · A TRAVESSIA ================= -->
 <section class="ato" id="ato-1">
   <div class="palco" id="palco-1">
-    <div class="palco-conteudo wrap" id="vela-stage">
+    <div class="palco-conteudo wrap">
       <div class="rotulo">Desafio 01 · A Travessia</div>
       <div style="position:relative">
         <div class="vela-fantasma" aria-hidden="true">Noventa dias.<br>É o tempo de uma travessia.<br>Reunião após reunião, você descobre se este é o seu lugar.</div>
         <div class="vela-texto" id="vela-texto">Noventa dias.<br>É o tempo de uma <b>travessia</b>.<br>Reunião após reunião, você descobre se este é o <b>seu lugar</b>.</div>
       </div>
-      <div class="dica">arraste o dedo pela escuridão — a chama revela</div>
-      <div class="chama" id="chama"></div>
+      <div class="dica">deslize ou toque — sua luz revela as palavras</div>
     </div>
   </div>
 </section>
@@ -285,7 +331,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="verso">a chama pegou. a estrada segue…</div>
 </div>
 
-<!-- ================= DESAFIO 2 · A CONSTÂNCIA ================= -->
+<!-- ================= D2 · A CONSTÂNCIA ================= -->
 <section class="ato" id="ato-2">
   <div class="palco" id="palco-2">
     <div class="palco-conteudo wrap">
@@ -295,8 +341,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
       <div class="carta-area" id="carta-area">
         <div class="carta" id="carta">
           <div class="selo-topo">Rotaract Club de Jaraguá do Sul</div>
-          <div class="frase">"Esteja em <b>6 de cada 10</b> reuniões. Não pelo número — mas porque é na constância que a alcateia aprende a contar com você."</div>
-          <div class="assin">— toque na carta para deixar suas marcas de tinta</div>
+          <div class="frase">"Esteja em <b>6 de cada 10</b> reuniões. Cada presença é uma marca sua na história do clube — como tinta fresca no papel."</div>
+          <div class="assin">— toque na carta: sua marca aparece, o papel a absorve</div>
         </div>
         <div class="envelope" id="envelope">
           <svg class="lacre-mini" viewBox="-60 -60 120 120"><use href="#lacre"/></svg>
@@ -313,13 +359,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
   <div class="verso">a carta guardada no bolso, o ar começa a esquentar…</div>
 </div>
 
-<!-- ================= DESAFIO 3 · O TREINO ================= -->
+<!-- ================= D3 · O TREINO ================= -->
 <section class="ato" id="ato-3">
   <div class="palco" id="palco-3">
-    <div class="palco-conteudo wrap" style="text-align:center">
+    <div class="brilho-metal" id="brilho-metal"></div>
+    <div class="palco-conteudo wrap" id="forja-stage" style="text-align:center">
       <div class="rotulo" style="justify-content:center">Desafio 03 · O Treino</div>
-      <h2>Todo caçador<br>afia a própria lâmina</h2>
-      <p class="historia" style="margin:0 auto">Participe de <b>1 treinamento</b> — do clube ou do distrito. É na forja que o ferro vira ferramenta.</p>
+      <h2>A mensagem está<br>no ferro bruto</h2>
+      <div class="forja-msg" id="forja-msg" aria-label="Participe de 1 treinamento — do clube ou do distrito. É na forja que o ferro vira ferramenta."></div>
       <svg class="forja-simbolo" id="forja-simbolo" viewBox="-50 -50 100 100" aria-hidden="true">
         <path d="M-16 6c0-16 7-26 16-26s16 10 16 26"/>
         <path d="M-16 6v10h32V6"/>
@@ -329,7 +376,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
         <path d="M-30 -2-36 -8"/><path d="M-28 8-35 5"/>
         <path d="M30 -2 36 -8"/><path d="M28 8 35 5"/>
       </svg>
-      <div class="dica">toque na tela — cada golpe solta faíscas da forja</div>
+      <div class="dica" id="forja-dica">deslize o dedo: o metal cintila · golpeie (toque) para forjar — 4 golpes</div>
     </div>
   </div>
 </section>
@@ -337,10 +384,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 <div class="entreato" data-entreato>
   <div class="morro fundo" data-par="0.35"></div>
   <div class="morro frente" data-par="0.7"></div>
-  <div class="verso">lâmina afiada. lá fora, a noite da caçada espera…</div>
+  <div class="verso">lâmina afiada. agora, a obra que fica de pé…</div>
 </div>
 
-<!-- ================= DESAFIO 4 · A OBRA ================= -->
+<!-- ================= D4 · A OBRA ================= -->
 <section class="ato" id="ato-4" style="height:280svh">
   <div class="palco" id="palco-4">
     <div class="noite" id="noite">
@@ -351,10 +398,34 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
     </div>
     <div class="palco-conteudo wrap obra-conteudo">
       <div class="rotulo">Desafio 04 · A Obra</div>
-      <h2>A caçada acontece<br>lá fora</h2>
-      <p class="historia">Participe de <b>1 projeto ou ação</b>. É pondo a mão na massa que você entende por que
-         tudo isso existe — e a noite vira <b>amanhecer</b>.</p>
-      <div class="dica">as luzes da caçada fogem do seu dedo · continue descendo e veja o dia raiar</div>
+      <h2>Erga algo que fique<br>de pé sem você</h2>
+      <svg id="monumento" viewBox="0 0 320 214" aria-hidden="true">
+        <g class="peca" id="pc-base">
+          <rect class="pedra" x="26" y="196" width="268" height="12" rx="2"/>
+          <rect class="pedra" x="40" y="184" width="240" height="12" rx="2"/>
+        </g>
+        <g class="peca" id="pc-ext">
+          <rect class="pedra" x="58" y="104" width="24" height="80"/>
+          <rect class="pedra" x="52" y="96" width="36" height="9" rx="2"/>
+          <rect class="pedra" x="238" y="104" width="24" height="80"/>
+          <rect class="pedra" x="232" y="96" width="36" height="9" rx="2"/>
+        </g>
+        <g class="peca" id="pc-int">
+          <rect class="pedra" x="118" y="104" width="24" height="80"/>
+          <rect class="pedra" x="112" y="96" width="36" height="9" rx="2"/>
+          <rect class="pedra" x="178" y="104" width="24" height="80"/>
+          <rect class="pedra" x="172" y="96" width="36" height="9" rx="2"/>
+        </g>
+        <g class="peca" id="pc-arq">
+          <rect class="pedra" x="44" y="82" width="232" height="14" rx="2"/>
+        </g>
+        <g class="peca" id="pc-front">
+          <path class="pedra" d="M38 82 160 30 282 82Z"/>
+          <circle class="pedra" cx="160" cy="64" r="7"/>
+        </g>
+      </svg>
+      <div class="gravacao" id="gravacao">"Participe de 1 projeto ou ação. A cidade é o mapa — deixe-a melhor do que você a encontrou."</div>
+      <div class="dica" id="obra-dica">toque para assentar as pedras — 5 restantes</div>
     </div>
   </div>
 </section>
@@ -378,6 +449,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-we
 function $(id){ return document.getElementById(id); }
 var reduz=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function vibrar(p){ if(navigator.vibrate) navigator.vibrate(p); }
+function lerp(a,b,t){ return a+(b-a)*t; }
 
 /* serrilha do lacre */
 (function(){
@@ -388,10 +460,10 @@ function vibrar(p){ if(navigator.vibrate) navigator.vibrate(p); }
 })();
 
 /* ==========================================================
-   O MUNDO ESQUENTA — cor do fundo e calor por progresso
+   O MUNDO ESQUENTA
    ========================================================== */
-var CALOR=0;   // 0 = breu, 1 = ouro
-var PALETA=[   // [progresso, céu, chão, brilho-fogueira]
+var CALOR=0;
+var PALETA=[
   [0.00,[11,10,9],   [11,10,9],   0.00],
   [0.18,[18,13,8],   [11,10,9],   0.04],
   [0.38,[26,17,9],   [13,10,7],   0.10],
@@ -399,7 +471,6 @@ var PALETA=[   // [progresso, céu, chão, brilho-fogueira]
   [0.80,[58,36,16],  [26,17,9],   0.45],
   [1.00,[74,51,21],  [36,23,8],   0.62]
 ];
-function lerp(a,b,t){ return a+(b-a)*t; }
 function corDoMundo(p){
   var i=1;
   while(i<PALETA.length-1 && PALETA[i][0]<p) i++;
@@ -422,7 +493,7 @@ document.addEventListener("scroll",function(){ requestAnimationFrame(aoRolarGlob
 aoRolarGlobal();
 
 /* ==========================================================
-   BRASAS GLOBAIS — o ar ganha vida conforme esquenta
+   BRASAS GLOBAIS
    ========================================================== */
 (function(){
   if(reduz) return;
@@ -436,17 +507,16 @@ aoRolarGlobal();
   }
   (function tick(){
     ctx.clearRect(0,0,W,H);
-    var alvo=Math.round(4+CALOR*46);          // densidade cresce com o calor
+    var alvo=Math.round(4+CALOR*46);
     while(parts.length<alvo) parts.push(nova());
     parts.forEach(function(p){
       p.x+=p.vx+Math.sin(p.y*.01)*.3;
       p.y+=p.vy*(0.6+CALOR);
       p.vida-=.004+CALOR*.004;
       if(p.y<-12||p.vida<=0){Object.assign(p,nova());}
-      var quente=CALOR;
-      var r=Math.round(lerp(239,239,quente)),g=Math.round(lerp(221,166,quente)),b=Math.round(lerp(184,60,quente));
+      var g=Math.round(lerp(221,166,CALOR)),b=Math.round(lerp(184,60,CALOR));
       ctx.globalAlpha=Math.max(0,Math.min(.75,p.vida*(.25+CALOR*.75)));
-      ctx.fillStyle="rgb("+r+","+g+","+b+")";
+      ctx.fillStyle="rgb(239,"+g+","+b+")";
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
     });
     ctx.globalAlpha=1;
@@ -455,11 +525,10 @@ aoRolarGlobal();
 })();
 
 /* ==========================================================
-   GSAP — entradas/saídas suaves (fronteiras claras)
+   GSAP — fronteiras suaves + cenas
    ========================================================== */
 if(window.gsap && window.ScrollTrigger){
   gsap.registerPlugin(ScrollTrigger);
-  // cada palco entra e sai com respiro
   ["#palco-1","#palco-2","#palco-3"].forEach(function(sel,i){
     var ato="#ato-"+(i+1);
     gsap.fromTo(sel+" .palco-conteudo",{opacity:0,y:44},{
@@ -473,7 +542,6 @@ if(window.gsap && window.ScrollTrigger){
   gsap.fromTo("#palco-4 .obra-conteudo",{opacity:0,y:44},{opacity:1,y:0,ease:"none",
     scrollTrigger:{trigger:"#ato-4",start:"top 65%",end:"top 12%",scrub:.5}});
 
-  // entreatos: morros em parallax + verso surgindo
   document.querySelectorAll("[data-entreato]").forEach(function(ea){
     ea.querySelectorAll(".morro").forEach(function(m){
       gsap.fromTo(m,{y:80*parseFloat(m.dataset.par)},{y:-80*parseFloat(m.dataset.par),ease:"none",
@@ -487,10 +555,8 @@ if(window.gsap && window.ScrollTrigger){
   ScrollTrigger.create({
     trigger:"#ato-3",start:"top bottom",end:"bottom top",scrub:true,
     onUpdate:function(self){
-      var p=self.progress;
-      var s=$("forja-simbolo");
-      var g=Math.round(lerp(90,239,p)),b=Math.round(lerp(69,121,p));
-      s.style.color="rgb("+Math.round(lerp(90,239,p))+","+Math.round(lerp(69,206,p))+","+b+")";
+      var p=self.progress,s=$("forja-simbolo");
+      s.style.color="rgb("+Math.round(lerp(90,239,p))+","+Math.round(lerp(69,206,p))+","+Math.round(lerp(53,121,p))+")";
       s.style.filter="drop-shadow(0 0 "+Math.round(p*26)+"px rgba(239,166,60,"+(p*.85).toFixed(2)+"))";
     }
   });
@@ -504,34 +570,27 @@ if(window.gsap && window.ScrollTrigger){
 }
 
 /* ==========================================================
-   D1 — A VELA: luz no dedo revela as palavras
+   D1 — A VELA (deslize OU toque; convive com a rolagem)
    ========================================================== */
 (function(){
-  var palco=$("palco-1"),texto=$("vela-texto"),chama=$("chama");
-  var raioBase=130,flick=0;
+  var palco=$("palco-1"),texto=$("vela-texto");
+  var flick=0,raioBase=140;
   function move(cx,cy){
     var r=texto.getBoundingClientRect();
-    var vx=((cx-r.left)/r.width*100).toFixed(1)+"%";
-    var vy=((cy-r.top)/r.height*100).toFixed(1)+"%";
-    texto.style.setProperty("--vx",vx);
-    texto.style.setProperty("--vy",vy);
-    var pr=palco.getBoundingClientRect();
-    chama.style.left=(cx-pr.left)+"px";
-    chama.style.top=(cy-pr.top)+"px";
+    texto.style.setProperty("--vx",((cx-r.left)/r.width*100).toFixed(1)+"%");
+    texto.style.setProperty("--vy",((cy-r.top)/r.height*100).toFixed(1)+"%");
   }
-  palco.addEventListener("pointermove",function(e){ move(e.clientX,e.clientY); });
-  palco.addEventListener("pointerdown",function(e){ move(e.clientX,e.clientY); });
-  // a chama treme sozinha
+  palco.addEventListener("pointermove",function(e){ move(e.clientX,e.clientY); },{passive:true});
+  palco.addEventListener("pointerdown",function(e){ move(e.clientX,e.clientY); },{passive:true});
   if(!reduz)(function treme(){
     flick+=.15;
-    var r=raioBase+Math.sin(flick)*7+Math.sin(flick*2.7)*5;
-    texto.style.setProperty("--raio",r.toFixed(0)+"px");
+    texto.style.setProperty("--raio",(raioBase+Math.sin(flick)*7+Math.sin(flick*2.7)*5).toFixed(0)+"px");
     requestAnimationFrame(treme);
   })();
 })();
 
 /* ==========================================================
-   D2 — A CARTA: rasgar + tinta
+   D2 — A CARTA (tinta que o papel absorve)
    ========================================================== */
 (function(){
   var area=$("carta-area"),env=$("envelope"),carta=$("carta");
@@ -548,7 +607,6 @@ if(window.gsap && window.ScrollTrigger){
   env.addEventListener("pointerdown",function(e){
     env.setPointerCapture(e.pointerId);
     drag={id:e.pointerId};
-    e.preventDefault();
   });
   env.addEventListener("pointermove",function(e){
     if(!drag||e.pointerId!==drag.id) return;
@@ -556,7 +614,6 @@ if(window.gsap && window.ScrollTrigger){
     corte((e.clientX-r.left)/r.width*100);
   });
   env.addEventListener("pointerup",function(){ drag=null; });
-  // tinta: toques na carta deixam marcas
   carta.addEventListener("pointerdown",function(e){
     if(!rasgada) return;
     var r=carta.getBoundingClientRect();
@@ -576,26 +633,45 @@ if(window.gsap && window.ScrollTrigger){
     wrap.innerHTML=svg.join("");
     carta.appendChild(wrap);
     vibrar(8);
+    // o papel absorve a tinta
+    requestAnimationFrame(function(){ wrap.classList.add("some"); });
+    setTimeout(function(){ wrap.remove(); },2600);
   });
 })();
 
 /* ==========================================================
-   D3 — A FORJA: toque = explosão de faíscas
+   D3 — A FORJA: cintilar (deslize) + forjar (golpes)
    ========================================================== */
 (function(){
-  var palco=$("palco-3");
-  palco.addEventListener("pointerdown",function(e){
+  var palco=$("palco-3"),brilho=$("brilho-metal"),stage=$("forja-stage"),dica=$("forja-dica");
+  // mensagem em pedaços a forjar
+  var PEDACOS=[
+    "Participe de 1 treinamento — ",
+    "do clube ou do distrito. ",
+    "É na forja que o ferro ",
+    "vira ferramenta."
+  ];
+  var msg=$("forja-msg");
+  var els=PEDACOS.map(function(t){
+    var s=document.createElement("span");
+    s.className="pedaco";
+    s.textContent=t;
+    msg.appendChild(s);
+    return s;
+  });
+  var golpe=0;
+
+  // efeito de ponteiro: o metal cintila sob o dedo
+  palco.addEventListener("pointermove",function(e){
     var r=palco.getBoundingClientRect();
-    var x=e.clientX-r.left,y=e.clientY-r.top;
-    var onda=document.createElement("i");
-    onda.className="onda";
-    onda.style.left=x+"px";onda.style.top=y+"px";
-    palco.appendChild(onda);
-    setTimeout(function(){onda.remove();},750);
-    vibrar(10);
+    brilho.style.setProperty("--gx",((e.clientX-r.left)/r.width*100)+"%");
+    brilho.style.setProperty("--gy",((e.clientY-r.top)/r.height*100)+"%");
+  },{passive:true});
+
+  function faiscas(x,y,qtd){
     if(reduz) return;
     var parts=[];
-    for(var i=0;i<18;i++){
+    for(var i=0;i<qtd;i++){
       var p=document.createElement("i");
       p.className="faisca";
       p.style.left=x+"px";p.style.top=y+"px";
@@ -615,51 +691,169 @@ if(window.gsap && window.ScrollTrigger){
       });
       if(vivas) requestAnimationFrame(tick);
     })();
+  }
+
+  palco.addEventListener("pointerdown",function(e){
+    var r=palco.getBoundingClientRect();
+    var x=e.clientX-r.left,y=e.clientY-r.top;
+    var onda=document.createElement("i");
+    onda.className="onda";
+    onda.style.left=x+"px";onda.style.top=y+"px";
+    palco.appendChild(onda);
+    setTimeout(function(){onda.remove();},750);
+    stage.classList.remove("palco-3-golpe");
+    void stage.offsetWidth;
+    stage.classList.add("palco-3-golpe");
+    vibrar(12);
+
+    if(golpe<els.length){
+      var alvo=els[golpe];
+      alvo.classList.add("quente");
+      (function(a){ setTimeout(function(){ a.classList.add("frio"); },1100); })(alvo);
+      // faíscas saem do trecho recém-forjado
+      var er=alvo.getBoundingClientRect();
+      faiscas(er.left-r.left+er.width/2, er.top-r.top+er.height/2, 16);
+      golpe++;
+      dica.textContent = golpe<els.length
+        ? "deslize o dedo: o metal cintila · golpeie para forjar — "+(els.length-golpe)+(els.length-golpe>1?" golpes":" golpe")
+        : "a mensagem foi forjada — cada golpe valeu";
+    } else {
+      faiscas(x,y,14);
+    }
   });
 })();
 
 /* ==========================================================
-   D4 — VAGALUMES: luzes vivas que fogem do dedo
+   D4 — A OBRA: erguer pedras + vitória (brilho e fogos)
    ========================================================== */
 (function(){
-  if(reduz) return;
-  var noite=$("noite");
-  var vagas=[],i;
-  for(i=0;i<14;i++){
-    var el=document.createElement("i");
-    el.className="vagalume";
-    noite.appendChild(el);
-    vagas.push({el:el,
-      x:Math.random()*100,y:20+Math.random()*70,
-      fx:Math.random()*Math.PI*2,fy:Math.random()*Math.PI*2,
-      sx:.14+Math.random()*.2,sy:.1+Math.random()*.16,
-      px:0,py:0});
+  var palco=$("palco-4"),noite=$("noite"),dica=$("obra-dica");
+  var pecas=["pc-base","pc-ext","pc-int","pc-arq","pc-front"].map($);
+  var posta=0,completa=false;
+  if(window.gsap) gsap.set(pecas,{y:70,opacity:0});
+
+  function poeira(el){
+    if(reduz) return;
+    var mr=$("monumento").getBoundingClientRect(),pr=palco.getBoundingClientRect();
+    var er=el.getBoundingClientRect();
+    for(var i=0;i<8;i++){
+      (function(){
+        var d=document.createElement("i");
+        d.className="poeira";
+        var x=er.left-pr.left+Math.random()*er.width;
+        var y=er.bottom-pr.top-4;
+        d.style.left=x+"px";d.style.top=y+"px";
+        palco.appendChild(d);
+        var dx=(Math.random()-.5)*46,dy=-(6+Math.random()*18);
+        requestAnimationFrame(function(){
+          d.style.transition="transform .7s cubic-bezier(.16,.84,.44,1),opacity .7s";
+          d.style.transform="translate("+dx+"px,"+dy+"px) scale(.3)";
+          d.style.opacity=0;
+        });
+        setTimeout(function(){d.remove();},800);
+      })();
+    }
   }
-  var dedo=null;
-  var palco=$("palco-4");
+
+  function fogos(x,y){
+    if(reduz) return;
+    var CORES=["#EFCE79","#FFF6DA","#D4145A","#C8A035","#FFD98A"];
+    var parts=[];
+    for(var i=0;i<26;i++){
+      var p=document.createElement("i");
+      p.className="fogo-particula";
+      var s=3+Math.random()*4;
+      var cor=CORES[Math.floor(Math.random()*CORES.length)];
+      p.style.width=s+"px";p.style.height=s+"px";
+      p.style.background=cor;
+      p.style.boxShadow="0 0 10px 2px "+cor;
+      p.style.left=x+"px";p.style.top=y+"px";
+      var a=Math.random()*Math.PI*2,v=2.6+Math.random()*5;
+      parts.push({el:p,x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-3,vida:1});
+      palco.appendChild(p);
+    }
+    (function tick(){
+      var vivas=false;
+      parts.forEach(function(p){
+        if(p.vida<=0) return;
+        vivas=true;
+        p.vy+=.14;p.x+=p.vx;p.y+=p.vy;p.vida-=.017;
+        p.el.style.left=p.x+"px";p.el.style.top=p.y+"px";
+        p.el.style.opacity=p.vida;
+        if(p.vida<=0)p.el.remove();
+      });
+      if(vivas) requestAnimationFrame(tick);
+    })();
+  }
+
+  // efeito de ponteiro (vitória): rastro de brilho dourado
+  var ultEstrela=0;
   palco.addEventListener("pointermove",function(e){
-    var r=noite.getBoundingClientRect();
-    dedo={x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100};
-  });
-  palco.addEventListener("pointerleave",function(){ dedo=null; });
-  (function tick(t){
-    var r=noite.getBoundingClientRect();
-    vagas.forEach(function(v){
-      v.fx+=v.sx*.02;v.fy+=v.sy*.02;
-      var bx=v.x+Math.sin(v.fx)*6, by=v.y+Math.sin(v.fy)*5;
-      if(dedo){
-        var dx=bx-dedo.x, dy=by-dedo.y;
-        var d=Math.hypot(dx,dy);
-        if(d<18){var f=(18-d)/18*10; v.px+=dx/d*f; v.py+=dy/d*f;}
+    var agora=performance.now();
+    if(agora-ultEstrela<70||reduz) return;
+    ultEstrela=agora;
+    var r=palco.getBoundingClientRect();
+    var s=document.createElement("i");
+    s.className="estrelinha";
+    s.textContent="✦";
+    s.style.left=(e.clientX-r.left-5)+"px";
+    s.style.top=(e.clientY-r.top-7)+"px";
+    s.style.fontSize=(8+Math.random()*8)+"px";
+    palco.appendChild(s);
+    setTimeout(function(){s.remove();},950);
+  },{passive:true});
+
+  palco.addEventListener("pointerdown",function(e){
+    var r=palco.getBoundingClientRect();
+    if(posta<pecas.length){
+      var el=pecas[posta];
+      if(window.gsap) gsap.to(el,{y:0,opacity:1,duration:.6,ease:"back.out(1.8)"});
+      else { el.style.opacity=1; el.style.transform="none"; }
+      poeira(el);
+      vibrar(10);
+      posta++;
+      if(posta<pecas.length){
+        dica.textContent="toque para assentar as pedras — "+(pecas.length-posta)+(pecas.length-posta>1?" restantes":" restante");
+      } else {
+        completa=true;
+        dica.textContent="a obra está de pé — toque e celebre";
+        $("gravacao").classList.add("aparece");
+        vibrar([15,50,20,50,80]);
+        // salva de fogos sobre o monumento
+        var mr=$("monumento").getBoundingClientRect();
+        [[.3,.2],[.7,.15],[.5,.05]].forEach(function(f,i){
+          setTimeout(function(){
+            fogos(mr.left-r.left+mr.width*f[0], mr.top-r.top-10+mr.height*f[1]);
+          }, i*260);
+        });
       }
-      v.px*=.9; v.py*=.9;
-      var fx=bx+v.px, fy=by+v.py;
-      v.el.style.left=fx+"%"; v.el.style.top=fy+"%";
-      var pisca=.4+Math.abs(Math.sin(v.fx*2.4))*.6;
-      v.el.style.opacity=pisca;
-    });
-    requestAnimationFrame(tick);
-  })();
+    } else {
+      fogos(e.clientX-r.left,e.clientY-r.top);
+      vibrar(8);
+    }
+  });
+
+  /* vagalumes discretos ao fundo */
+  if(!reduz){
+    var vagas=[],i;
+    for(i=0;i<10;i++){
+      var el=document.createElement("i");
+      el.className="vagalume";
+      noite.appendChild(el);
+      vagas.push({el:el,x:Math.random()*100,y:16+Math.random()*70,
+        fx:Math.random()*Math.PI*2,fy:Math.random()*Math.PI*2,
+        sx:.14+Math.random()*.2,sy:.1+Math.random()*.16});
+    }
+    (function tick(){
+      vagas.forEach(function(v){
+        v.fx+=v.sx*.02;v.fy+=v.sy*.02;
+        v.el.style.left=(v.x+Math.sin(v.fx)*6)+"%";
+        v.el.style.top=(v.y+Math.sin(v.fy)*5)+"%";
+        v.el.style.opacity=.35+Math.abs(Math.sin(v.fx*2.4))*.55;
+      });
+      requestAnimationFrame(tick);
+    })();
+  }
 })();
 
 /* final */
