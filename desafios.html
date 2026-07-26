@@ -1562,7 +1562,7 @@ if(window.gsap && window.ScrollTrigger){
   addEventListener("load",function(){ if(!tocouAlgo&&!limpo) pintar(); });
   addEventListener("resize",function(){ if(!tocouAlgo&&!limpo) pintar(); });
 
-  function esfrega(x,y){
+  function esfrega(x,y,comSom){
     ctx.globalCompositeOperation="destination-out";
     var passos=1;
     if(px!==null) passos=Math.max(1,Math.ceil(Math.hypot(x-px,y-py)/10));
@@ -1579,7 +1579,7 @@ if(window.gsap && window.ScrollTrigger){
     ctx.globalCompositeOperation="source-over";
     px=x;py=y;
     var agora=performance.now();
-    if(agora-ultSom>340){ ultSom=agora; tocar("nevoa"); }
+    if(comSom && agora-ultSom>340){ ultSom=agora; tocar("nevoa"); }
     if(agora-ultAmostra>420){ ultAmostra=agora; medir(); }
     // garante uma medição FINAL depois da última esfregada
     clearTimeout(medidaFinal);
@@ -1615,11 +1615,13 @@ if(window.gsap && window.ScrollTrigger){
     try{ cv.setPointerCapture(e.pointerId); }catch(_e){}
     var r=cv.getBoundingClientRect();
     px=py=null;
-    esfrega(e.clientX-r.left,e.clientY-r.top);
+    esfrega(e.clientX-r.left,e.clientY-r.top,true);
   });
   cv.addEventListener("pointermove",function(e){
     var r=cv.getBoundingClientRect();
-    esfrega(e.clientX-r.left,e.clientY-r.top);
+    // hover de mouse limpa em silêncio; dedo (ou botão pressionado) soa
+    var comSom=(e.pointerType!=="mouse")||e.buttons>0;
+    esfrega(e.clientX-r.left,e.clientY-r.top,comSom);
   },{passive:true});
   cv.addEventListener("pointerup",function(){ px=py=null; medir(); });
   cv.addEventListener("pointercancel",function(){ px=py=null; medir(); });
@@ -1682,7 +1684,10 @@ if(window.gsap && window.ScrollTrigger){
     if(!window.THREE){ pinEstatico(); return; }
     var palco=$("pin-palco"),cv=$("pin-cena");
     var W=palco.clientWidth,H=palco.clientHeight;
-    var renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+    var renderer;
+    try{
+      renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+    }catch(e){ pinEstatico(); return; }   // WebGL indisponível: placa estática
     renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
     renderer.setSize(W,H,false);
     renderer.outputEncoding=THREE.sRGBEncoding;
